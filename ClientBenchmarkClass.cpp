@@ -206,7 +206,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf(" ############# \n");
         } else {
 //            if ((index_paket % 100) == 0 || arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1)) {
-            if ((arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1)) {
+            if (arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1)) {
                 printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
                 printf("index_paket: %d # ", index_paket);
                 printf("count_pakets_in_train: %d # ", arbeits_paket->header.count_pakets_in_train);
