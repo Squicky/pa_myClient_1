@@ -1,0 +1,32 @@
+/* 
+ * File:   ClientClass.h
+ * Author: user
+ *
+ * Created on 17. August 2014, 14:56
+ */
+
+#ifndef CLIENTCLASS_H
+#define	CLIENTCLASS_H
+
+#include "ClientBenchmarkClass.h"
+
+#define Remote_Control_SERVER_PORT 5000
+#define SERVER "127.0.0.1"
+#define LOCAL_Control_SERVER_PORT 6000
+#define PAKETSIZE 100
+
+
+class ClientClass {
+public:
+    ClientClass();
+    ClientClass(const ClientClass& orig);
+    virtual ~ClientClass();
+    
+private:
+    ClientBenchmarkClass *clientBenchmarkClass;
+    
+    char *server_ip;
+};
+
+#endif	/* CLIENTCLASS_H */
+
