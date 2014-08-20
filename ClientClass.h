@@ -3,6 +3,7 @@
  * Author: user
  *
  * Created on 17. August 2014, 14:56
+ * test
  */
 
 #ifndef CLIENTCLASS_H
