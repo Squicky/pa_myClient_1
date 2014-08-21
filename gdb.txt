@@ -1,0 +1,17 @@
+g++ -pthread   -c -g -MMD -MP -MF "ClientBenchmarkClass.o.d" -o ClientBenchmarkClass.o ClientBenchmarkClass.cpp
+
+g++ -pthread   -c -g -MMD -MP -MF "ClientClass.o.d" -o ClientClass.o ClientClass.cpp
+
+g++ -pthread   -c -g -MMD -MP -MF "welcome.o.d" -o welcome.o welcome.cc
+
+g++ -pthread    -o myclient ClientBenchmarkClass.o ClientClass.o welcome.o
+
+ulimit -c unlimited
+
+./myclient 
+
+gdb myclient core 
+
+--> (GDB) bt
+
+
