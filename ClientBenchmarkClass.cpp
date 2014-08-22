@@ -233,7 +233,7 @@ void ClientBenchmarkClass::rec_threadRun() {
         }
 
         if (countBytes == -1) {
-  //          sleep(1);
+            //          sleep(1);
         } else {
 
             last_paket_id = arbeits_paket_header->paket_id;
@@ -241,9 +241,16 @@ void ClientBenchmarkClass::rec_threadRun() {
             if (my_max_recv_train_id < arbeits_paket_header->train_id) {
                 my_max_recv_train_id = arbeits_paket_header->train_id;
                 my_train_send_countid = arbeits_paket_header->train_send_countid;
+
+                printf("empfange # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header->train_id, arbeits_paket_header->train_send_countid, arbeits_paket_header->count_pakets_in_train);
+
+                //                index_paket = 0;
             } else if (my_max_recv_train_id == arbeits_paket_header->train_id) {
                 if (my_train_send_countid < arbeits_paket_header->train_send_countid) {
                     my_train_send_countid = arbeits_paket_header->train_send_countid;
+
+                    printf("empfange # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header->train_id, arbeits_paket_header->train_send_countid, arbeits_paket_header->count_pakets_in_train);
+
                     index_paket = 0;
                 }
             }
@@ -339,7 +346,13 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
             printf("count_all_bytes: %f # ", count_all_bytes);
             printf("time_diff: %f # ", time_diff);
-            printf("my new data_rate: %f \n", bytes_per_sek);
+            if (bytes_per_sek >= 1024 * 1024) {
+                printf("my new data_rate: %.2f MB / Sek \n", bytes_per_sek / (1024 * 1024));
+            } else if (bytes_per_sek >= 1024 * 1024) {
+                printf("my new data_rate: %.2f KB / Sek \n", bytes_per_sek / (1024));
+            } else {
+                printf("my new data_rate: %.2f B / Sek \n", bytes_per_sek);
+            }
 
             arbeits_paket_header->train_id = my_max_recv_train_id + 1;
 
@@ -353,7 +366,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             my_last_send_train_id = arbeits_paket_header->train_id;
 
-            printf("sende %d Pakete # train_id: %d\n", arbeits_paket_header->count_pakets_in_train, arbeits_paket_header->train_id);
+            printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header->count_pakets_in_train, arbeits_paket_header->train_id, my_train_send_countid);
             for (i = 0; i < arbeits_paket_header->count_pakets_in_train; i++) {
                 arbeits_paket_header->paket_id = i;
                 clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header->send_time));
