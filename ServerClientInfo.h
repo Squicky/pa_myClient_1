@@ -24,6 +24,7 @@ struct paket_header {
     int token;
     int train_id;
     int paket_id;
+    int train_send_countid;
     int count_pakets_in_train;
     struct timespec recv_time;
     struct timespec send_time;
@@ -39,7 +40,7 @@ struct paket {
  * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
  * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
  */
-static int max_umts_data_rate = 5250000;
+static int max_umts_data_rate = 15250000;
 
 #endif	/* SERVERCLIENTINFO_H */
 
