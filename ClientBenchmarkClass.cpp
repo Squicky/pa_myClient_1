@@ -95,11 +95,13 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
     }
 }
 
+/*
 ClientBenchmarkClass::ClientBenchmarkClass(const ClientBenchmarkClass& orig) {
 }
 
 ClientBenchmarkClass::~ClientBenchmarkClass() {
 }
+ */
 
 void * ClientBenchmarkClass::rec_threadStart(void * data) {
     ((ClientBenchmarkClass*) data)->rec_threadRun();
@@ -123,54 +125,59 @@ void ClientBenchmarkClass::rec_threadRun() {
     struct paket_header *array_paket_header_recv = (paket_header*) malloc(array_paket_header_size);
     struct paket_header *array_paket_header_send = (paket_header*) malloc(array_paket_header_size);
 
+    if (array_paket_header_recv == NULL || array_paket_header_send == NULL) {
+        printf("ERROR:\n  Kein virtueller RAM mehr verfügbar \n");
+        printf("  array_paket_header_recv: %p \n", array_paket_header_recv);
+        printf("  array_paket_header_send: %p \n", array_paket_header_send);
+        exit(EXIT_FAILURE);
+    }
+
     uint array_paket_header_recv_start = (uint) array_paket_header_recv;
     uint array_paket_header_recv_ende = array_paket_header_recv_start + array_paket_header_size - 1;
 
     int paket_size = sizeof (paket);
-    struct paket *arbeits_paket = (struct paket *) malloc(paket_size);
-    struct paket_header *arbeits_paket_header = &(arbeits_paket->header);
+    struct paket *arbeits_paket_recv = (struct paket *) malloc(paket_size);
+    struct paket_header *arbeits_paket_header_recv = &(arbeits_paket_recv->header);
+    struct paket *arbeits_paket_send = (struct paket *) malloc(paket_size);
+    struct paket_header *arbeits_paket_header_send = &(arbeits_paket_send->header);
 
-    if (array_paket_header_recv == NULL || array_paket_header_send == NULL || arbeits_paket == NULL) {
+    if (arbeits_paket_recv == NULL || arbeits_paket_send == NULL) {
         printf("ERROR:\n  Kein virtueller RAM mehr verfügbar \n");
-        printf("  array_paket_header_recv: %p \n", array_paket_header_recv);
-        printf("  array_paket_header_send: %p \n", array_paket_header_send);
-        printf("  mein_paket: %p \n", arbeits_paket);
+        printf("  arbeits_paket_recv: %p \n", arbeits_paket_recv);
+        printf("  arbeits_paket_send: %p \n", arbeits_paket_send);
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
 
     // mein_paket->puffer mit dezimal "83" (binär "01010011") füllen
-    memset((char *) &(arbeits_paket->puffer), 83, sizeof (arbeits_paket->puffer));
+    memset((char *) &(arbeits_paket_send->puffer), 83, sizeof (arbeits_paket_send->puffer));
 
     // Es soll nur 1/2 Sek gesendet werden
     int mess_paket_size_doppelt = 2 * mess_paket_size;
 
     //    struct paket_header meinPaket;
-    arbeits_paket_header->token = -1;
-    arbeits_paket_header->train_id = 0;
-    arbeits_paket_header->paket_id = 0;
-    arbeits_paket_header->train_send_countid = 0;
-    arbeits_paket_header->recv_time.tv_nsec = 0;
-    arbeits_paket_header->recv_time.tv_sec = 0;
-    arbeits_paket_header->send_time.tv_nsec = 0;
-    arbeits_paket_header->send_time.tv_sec = 0;
-    arbeits_paket_header->recv_data_rate = 64000 / 8; // 64 kBit/Sek.
-    arbeits_paket_header->count_pakets_in_train = arbeits_paket_header->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
+    arbeits_paket_header_send->token = -1;
+    arbeits_paket_header_send->train_id = 0;
+    arbeits_paket_header_send->paket_id = 0;
+    arbeits_paket_header_send->train_send_countid = 0;
+    arbeits_paket_header_send->recv_time.tv_nsec = 0;
+    arbeits_paket_header_send->recv_time.tv_sec = 0;
+    arbeits_paket_header_send->send_time.tv_nsec = 0;
+    arbeits_paket_header_send->send_time.tv_sec = 0;
+    arbeits_paket_header_send->recv_data_rate = 64000 / 8; // 64 kBit/Sek.
+    arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_send->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
 
     long countBytes;
     int i;
-    int index_paket = 0;
 
+    printf("SEND # %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
 
+    for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
+        arbeits_paket_header_send->paket_id = i;
+        clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
 
-    printf("sende %d Pakete # train_id: %d\n", arbeits_paket_header->count_pakets_in_train, arbeits_paket_header->train_id);
-
-    for (i = 0; i < arbeits_paket_header->count_pakets_in_train; i++) {
-        arbeits_paket_header->paket_id = i;
-        clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header->send_time));
-
-        countBytes = sendto(server_mess_socket, arbeits_paket, mess_paket_size, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
-        usleep(1);
+        countBytes = sendto(server_mess_socket, arbeits_paket_send, mess_paket_size, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
+        usleep(1000);
 
         if (countBytes != mess_paket_size) {
             printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));
@@ -190,18 +197,22 @@ void ClientBenchmarkClass::rec_threadRun() {
     }
      * */
 
-    /* Daten in While Schleife empfangen */
-    printf("UDP Mess-Socket (UMS) (%s:%d) wartet auf Daten ... \n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
-    int last_paket_id = -1;
+    int index_paket = 0;
 
-    int my_last_send_train_id = 0;
-    int my_train_send_countid = 0;
+    //    int my_last_recv_paket_id = -1;
+
+    int my_last_send_train_id = -1;
+    int my_recv_train_send_countid = -1;
+    int my_send_train_send_countid = -1;
     int my_max_recv_train_id = -1;
-    int my_max_train_id = -1;
+    int my_max_send_train_id = -3;
+    int my_max_train_id = -2;
     int my_bytes_per_sek = 64;
 
     int set_timeout = 0;
 
+    /* Daten in While Schleife empfangen */
+    printf("UDP Mess-Socket (UMS) (%s:%d) wartet auf Daten ... \n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     while (stop == false) {
 
         /*
@@ -215,12 +226,12 @@ void ClientBenchmarkClass::rec_threadRun() {
         printf("  Daten: |%s|\n", puffer);
          */
 
-        countBytes = recvfrom(server_mess_socket, arbeits_paket, paket_size, 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
+        countBytes = recvfrom(server_mess_socket, arbeits_paket_recv, paket_size, 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
 
-        clock_gettime(CLOCK_REALTIME, &(arbeits_paket->header.recv_time));
+        clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
 
         if (set_timeout == 0) {
-            set_timeout++;
+            set_timeout = 1;
             if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                 printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
                 fflush(stdout);
@@ -236,58 +247,79 @@ void ClientBenchmarkClass::rec_threadRun() {
             //          sleep(1);
         } else {
 
-            last_paket_id = arbeits_paket_header->paket_id;
+            //            my_last_recv_paket_id = arbeits_paket_header_recv->paket_id;
 
-            if (my_max_recv_train_id < arbeits_paket_header->train_id) {
-                my_max_recv_train_id = arbeits_paket_header->train_id;
-                my_train_send_countid = arbeits_paket_header->train_send_countid;
-
-                printf("empfange # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header->train_id, arbeits_paket_header->train_send_countid, arbeits_paket_header->count_pakets_in_train);
-
-                //                index_paket = 0;
-            } else if (my_max_recv_train_id == arbeits_paket_header->train_id) {
-                if (my_train_send_countid < arbeits_paket_header->train_send_countid) {
-                    my_train_send_countid = arbeits_paket_header->train_send_countid;
-
-                    printf("empfange # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header->train_id, arbeits_paket_header->train_send_countid, arbeits_paket_header->count_pakets_in_train);
-
-                    index_paket = 0;
-                }
-            }
-
-            if (my_max_train_id < my_max_recv_train_id) {
-                my_max_train_id = my_max_recv_train_id;
-                printf("my_max_train_id recv: %d \n", my_max_train_id);
-            }
-
-            if (arbeits_paket_header->paket_id < my_max_train_id) {
+            //            if (arbeits_paket_header_recv->paket_id < my_max_train_id) {
+            if (arbeits_paket_header_recv->train_id < my_max_send_train_id) {
                 continue;
             }
 
-            if ((last_paket_id + 1) != index_paket && 1 == 2) {
-                printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
+
+            if (my_max_recv_train_id < arbeits_paket_header_recv->train_id) {
+                my_recv_train_send_countid = arbeits_paket_header_recv->train_send_countid;
+
+                printf("RECV neu train # train_id %d  # countid: %d #  count pakete: %d\n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->count_pakets_in_train);
+
+                if (index_paket != 0) {
+                    printf("ERROR:\n  index_paket != 0 # index_paket: %d \n", index_paket);
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
+                }
+
+            } else if (my_max_recv_train_id == arbeits_paket_header_recv->train_id) {
+                if (my_recv_train_send_countid < arbeits_paket_header_recv->train_send_countid) {
+                    my_recv_train_send_countid = arbeits_paket_header_recv->train_send_countid;
+
+                    printf("RECV alt train # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->count_pakets_in_train);
+
+                    index_paket = 0;
+                }
+            } else {
+
+                printf("ERROR:\n  arbeits_paket_header_recv->train_id: %d \n", arbeits_paket_header_recv->train_id);
+                fflush(stdout);
+                exit(EXIT_FAILURE);
+
+            }
+
+
+            if (my_max_recv_train_id < arbeits_paket_header_recv->train_id) {
+                my_max_recv_train_id = arbeits_paket_header_recv->train_id;
+
+                if (my_max_train_id < my_max_recv_train_id) {
+                    my_max_train_id = my_max_recv_train_id;
+                    printf("my_max_train_id recv: %d \n", my_max_train_id);
+                }
+
+            }
+
+
+            /*
+            if ((my_last_recv_paket_id + 1) != index_paket && 1 == 2) {
+                printf("paket empfangen id: %d # ", arbeits_paket_header_recv->paket_id);
                 printf("index_paket: %d # ", index_paket);
-                printf("count_pakets_in_train: %d # ", arbeits_paket->header.count_pakets_in_train);
+                printf("count_pakets_in_train: %d # ", arbeits_paket_header_recv->count_pakets_in_train);
                 printf("countBytes: %ld # ", countBytes);
-                printf("train_id: %d ", arbeits_paket->header.train_id);
+                printf("train_id: %d ", arbeits_paket_header_recv->train_id);
                 printf(" ############# \n");
             } else {
                 //            if ((index_paket % 100) == 0 || arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1)) {
-                if (arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1)) {
-                    printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
+                if (arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1)) {
+                    printf("paket empfangen id: %d # ", arbeits_paket_header_recv->paket_id);
                     printf("index_paket: %d # ", index_paket);
-                    printf("count_pakets_in_train: %d # ", arbeits_paket->header.count_pakets_in_train);
+                    printf("count_pakets_in_train: %d # ", arbeits_paket_header_recv->count_pakets_in_train);
                     printf("countBytes: %ld # ", countBytes);
-                    printf("train_id: %d ", arbeits_paket->header.train_id);
+                    printf("train_id: %d ", arbeits_paket_header_recv->train_id);
                     printf(" \n");
                 }
             }
+             * */
 
             // Header des empfangenen Pakets in das Array sichern 
             uint ui = (uint) &(array_paket_header_recv[index_paket]);
             //            if (array_paket_header_recv_start <= ui && ui <= (array_paket_header_recv_ende - paket_header_size)) {
             if (0 <= index_paket && index_paket <= last_index_in_array_paket_header) {
-                memcpy(&(array_paket_header_recv[index_paket]), arbeits_paket_header, paket_header_size);
+                memcpy(&(array_paket_header_recv[index_paket]), arbeits_paket_header_recv, paket_header_size);
             } else {
                 printf("Segmentation fault ? %u ### %d \n", ui, index_paket);
 
@@ -296,17 +328,17 @@ void ClientBenchmarkClass::rec_threadRun() {
                 printf("array_paket_header_recv_start: %u # \n", array_paket_header_recv_start);
                 printf("array_paket_header_recv_ende: %u # \n", array_paket_header_recv_ende);
 
-                printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
+                printf("paket empfangen id: %d # ", arbeits_paket_header_send->paket_id);
                 printf("index_paket: %d # ", index_paket);
-                printf("count_pakets_in_train: %d # ", arbeits_paket->header.count_pakets_in_train);
+                printf("count_pakets_in_train: %d # ", arbeits_paket_header_send->count_pakets_in_train);
                 printf("countBytes: %ld # ", countBytes);
-                printf("train_id: %d ", arbeits_paket->header.train_id);
+                printf("train_id: %d ", arbeits_paket_header_send->train_id);
                 printf("  \n");
 
                 fflush(stdout);
 
                 int x = 4711;
-                x = (int) memcpy(&(array_paket_header_recv[index_paket]), arbeits_paket_header, paket_header_size);
+                x = (int) memcpy(&(array_paket_header_recv[index_paket]), arbeits_paket_header_recv, paket_header_size);
 
                 printf("Segmentation fault ? %u ### %d ### %d \n", ui, index_paket, x);
             }
@@ -318,32 +350,52 @@ void ClientBenchmarkClass::rec_threadRun() {
 
         // wenn leztes Paket vom Paket Train empfangen, dann Antwort Train senden
         if (
-                (countBytes == -1 && my_max_train_id == my_last_send_train_id)
+                //                (countBytes == -1 && my_max_train_id == my_last_send_train_id)
+                (countBytes == -1)
                 ||
-                (arbeits_paket_header->paket_id == (arbeits_paket_header->count_pakets_in_train - 1))
+                (arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1))
                 ) {
 
-            arbeits_paket_header->count_pakets_in_train = arbeits_paket_header->recv_data_rate / mess_paket_size_doppelt;
+            arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_recv->recv_data_rate / mess_paket_size_doppelt;
 
-            if (last_index_in_array_paket_header < arbeits_paket_header->count_pakets_in_train) {
-                arbeits_paket_header->count_pakets_in_train = last_index_in_array_paket_header;
+            if (last_index_in_array_paket_header < arbeits_paket_header_send->count_pakets_in_train) {
+                arbeits_paket_header_send->count_pakets_in_train = last_index_in_array_paket_header;
             }
 
             // berechne neue Empfangsrate
             double time_diff;
             double count_all_bytes;
             double bytes_per_sek;
-            if (0 < index_paket) {
-                time_diff = timespec_diff_double(array_paket_header_recv[0].recv_time, array_paket_header_recv[index_paket].recv_time);
+            if (1 < index_paket) {
+                paket_header *aaastart = &array_paket_header_recv[0];
+                paket_header *aaaende = &array_paket_header_recv[index_paket];
+
+                if (countBytes == -1) {
+                    time_diff = timespec_diff_double(array_paket_header_recv[0].recv_time, array_paket_header_recv[index_paket - 1].recv_time);
+
+                } else {
+                    time_diff = timespec_diff_double(array_paket_header_recv[0].recv_time, array_paket_header_recv[index_paket].recv_time);
+                }
+
+                if (time_diff <= 0) {
+                    printf("ERROR:\n  time_diff <= 0 \n");
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
+                }
+
                 count_all_bytes = index_paket * mess_paket_size;
                 bytes_per_sek = count_all_bytes / time_diff;
                 my_bytes_per_sek = bytes_per_sek;
             }
 
-            arbeits_paket_header->recv_data_rate = my_bytes_per_sek;
+            arbeits_paket_header_send->recv_data_rate = my_bytes_per_sek;
 
             printf("Last index_paket: %d # ", index_paket);
-            printf("paket empfangen id: %d # ", arbeits_paket->header.paket_id);
+            if (countBytes == -1) {
+                printf("paket empfangen id: %d # ", array_paket_header_recv[index_paket - 1].paket_id);
+            } else {
+                printf("paket empfangen id: %d # ", arbeits_paket_header_send->paket_id);
+            }
             printf("count_all_bytes: %f # ", count_all_bytes);
             printf("time_diff: %f # ", time_diff);
             if (bytes_per_sek >= 1024 * 1024) {
@@ -354,57 +406,61 @@ void ClientBenchmarkClass::rec_threadRun() {
                 printf("my new data_rate: %.2f B / Sek \n", bytes_per_sek);
             }
 
-            arbeits_paket_header->train_id = my_max_recv_train_id + 1;
+            arbeits_paket_header_send->train_id = my_max_recv_train_id + 1;
 
-            if (my_last_send_train_id < arbeits_paket_header->train_id) {
-                my_train_send_countid = 0;
+            if (my_last_send_train_id < arbeits_paket_header_send->train_id) {
+                my_send_train_send_countid = 0;
             } else {
-                my_train_send_countid++;
+                my_send_train_send_countid++;
             }
 
-            arbeits_paket_header->train_send_countid = my_train_send_countid;
+            arbeits_paket_header_send->train_send_countid = my_send_train_send_countid;
 
-            my_last_send_train_id = arbeits_paket_header->train_id;
+            my_last_send_train_id = arbeits_paket_header_send->train_id;
 
-            printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header->count_pakets_in_train, arbeits_paket_header->train_id, my_train_send_countid);
-            for (i = 0; i < arbeits_paket_header->count_pakets_in_train; i++) {
-                arbeits_paket_header->paket_id = i;
-                clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header->send_time));
+            printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
+            for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
+                arbeits_paket_header_send->paket_id = i;
+                clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
 
-                countBytes = sendto(server_mess_socket, arbeits_paket, mess_paket_size, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
+                countBytes = sendto(server_mess_socket, arbeits_paket_send, mess_paket_size, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
 
                 if (countBytes != mess_paket_size) {
                     printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));
                 }
             }
 
-            if (my_max_train_id < my_last_send_train_id) {
-                my_max_train_id = my_last_send_train_id;
-                printf("my_max_train_id send: %d \n", my_max_train_id);
+            if (my_max_send_train_id < my_last_send_train_id) {
+                my_max_send_train_id = my_last_send_train_id;
+
+                if (my_max_train_id < my_max_send_train_id) {
+                    my_max_train_id = my_max_send_train_id;
+                    printf("my_max_train_id send: %d \n", my_max_train_id);
+                }
             }
 
 
             index_paket = 0;
-            last_paket_id = -1;
-
-
+//            printf("index_paket = 0; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, countBytes);
+            //            my_last_recv_paket_id = -1;
 
         } else {
 
-            if (countBytes != -1) {
-
-                if (arbeits_paket_header->paket_id != (arbeits_paket_header->count_pakets_in_train - 1)) {
-                    index_paket++;
-
-                    if (0 <= index_paket && index_paket <= last_index_in_array_paket_header) {
-                        //
-                    } else {
-                        printf("Segmentation fault ? %u ### \n", index_paket);
-                    }
-
-                }
-
+            //            if (countBytes != -1) {
+            //            if (arbeits_paket_header_recv->paket_id != (arbeits_paket_header_recv->count_pakets_in_train - 1)) {
+            index_paket++;
+            if (0 == index_paket % 50) {
+//                printf("index_paket++; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # count_id: %d # paket_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->paket_id, countBytes);
             }
+            
+            if (0 <= index_paket && index_paket <= last_index_in_array_paket_header) {
+                //
+            } else {
+                printf("Segmentation fault ? %u ### \n", index_paket);
+            }
+
+            //        }
+            //            }
 
         }
 
@@ -420,7 +476,10 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     free(array_paket_header_recv);
     free(array_paket_header_send);
-    free(arbeits_paket);
+    free(arbeits_paket_recv);
+    free(arbeits_paket_header_recv);
+    free(arbeits_paket_send);
+    free(arbeits_paket_header_send);
 }
 
 /*

@@ -14,7 +14,7 @@
 #define Remote_Control_SERVER_PORT 5000
 #define SERVER "127.0.0.1"
 #define LOCAL_Control_SERVER_PORT 6000
-#define PAKETSIZE 2000
+#define PAKETSIZE 1000
 
 
 class ClientClass {

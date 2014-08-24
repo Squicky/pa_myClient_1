@@ -40,7 +40,7 @@ struct paket {
  * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
  * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
  */
-static int max_umts_data_rate = 15250000;
+static int max_umts_data_rate = 115250000;
 
 #endif	/* SERVERCLIENTINFO_H */
 

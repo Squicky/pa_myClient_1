@@ -17,9 +17,11 @@
 class ClientBenchmarkClass {
 public:
     ClientBenchmarkClass(char * _server_ip, int _server_rec_port, int _paket_size);
+/*    
     ClientBenchmarkClass(const ClientBenchmarkClass& orig);
     virtual ~ClientBenchmarkClass();
-
+*/
+    
     pthread_t rec_thread;
 private:
     struct sockaddr_in serverAddr;
