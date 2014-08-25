@@ -202,7 +202,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     // Timeout fuer recvfrom auf 1 Sek setzen     
     struct timeval timeout_time;
     timeout_time.tv_sec = 0; // Anzahl Sekunden
-    timeout_time.tv_usec = 100000; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
+    timeout_time.tv_usec = 4500; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
     /*
     if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
         printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
@@ -388,7 +388,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             double time_diff;
             double count_all_bytes;
             double bytes_per_sek;
-            if (0 < index_paket) {
+            if (1 < index_paket) {
                 paket_header *aaastart = &array_paket_header_recv[0];
                 paket_header *aaaende = &array_paket_header_recv[index_paket];
 
@@ -408,6 +408,8 @@ void ClientBenchmarkClass::rec_threadRun() {
                 count_all_bytes = index_paket * mess_paket_size;
                 bytes_per_sek = count_all_bytes / time_diff;
                 my_bytes_per_sek = bytes_per_sek;
+            } else {
+                my_bytes_per_sek = mess_paket_size * 6;
             }
 
             arbeits_paket_header_send->recv_data_rate = my_bytes_per_sek;

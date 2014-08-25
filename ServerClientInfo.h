@@ -11,8 +11,8 @@
 #include <time.h>
 
 
-#define SERVER_IP "192.168.120.241"
-#define CLIENT_IP "192.168.120.234"
+#define SERVER_IP "192.168.2.231"
+#define CLIENT_IP "192.168.2.230"
 
 //#define paket_puffer_size 2048
 
