@@ -47,8 +47,13 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
     // meineAddr konfigurieren: IPv4, Port, jeder Absender
     meineAddr.sin_family = AF_INET;
     meineAddr.sin_port = htons(udp_rec_port);
-    meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-//    meineAddr.sin_addr.s_addr = inet_addr("127.0.0.1")
+    
+//    meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (6 < strlen(CLIENT_IP) && strlen(CLIENT_IP) < 16) {
+        meineAddr.sin_addr.s_addr = inet_addr(CLIENT_IP);
+    } else {
+        meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
 
     // serverAddr konfigurieren: IPv4, Port, Empfaenger IP
     serverAddr.sin_family = AF_INET;
@@ -184,6 +189,9 @@ void ClientBenchmarkClass::rec_threadRun() {
 
         countBytes = sendto(server_mess_socket, arbeits_paket_send, mess_paket_size, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
         usleep(1000);
+        printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), countBytes);
+        printf("an Server (%s:%d) gesendet\n", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+
 
         if (countBytes != mess_paket_size) {
             printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));

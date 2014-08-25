@@ -12,7 +12,6 @@
 #include "ClientBenchmarkClass.h"
 
 #define Remote_Control_SERVER_PORT 5000
-#define SERVER "192.168.120.233"
 #define LOCAL_Control_SERVER_PORT 6000
 #define PAKETSIZE 1000
 

@@ -20,7 +20,7 @@
 #include <pthread.h>
 
 ClientClass::ClientClass() {
-    server_ip = (char*) SERVER;
+    server_ip = (char*) SERVER_IP;
 
     struct sockaddr_in serverAddr;
     struct sockaddr_in meineAddr;
@@ -43,7 +43,14 @@ ClientClass::ClientClass() {
     // meineAddr konfigurieren: IPv4, Port, jeder Absender
     meineAddr.sin_family = AF_INET;
     meineAddr.sin_port = htons(LOCAL_Control_SERVER_PORT);
-    meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    //    meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (6 < strlen(CLIENT_IP) && strlen(CLIENT_IP) < 16) {
+        meineAddr.sin_addr.s_addr = inet_addr(CLIENT_IP);
+    } else {
+        meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    }
+
 
     // serverAddr konfigurieren: IPv4, Port, Empfaenger IP
     serverAddr.sin_family = AF_INET;
@@ -60,8 +67,8 @@ ClientClass::ClientClass() {
 
     long rc;
 
-
     rc = bind(server_socket, (struct sockaddr*) &meineAddr, sizeof (meineAddr));
+
     if (rc < 0) {
         printf("ERROR:\n  Port %d kann nicht an Control UDP Socket gebunden werden:\n (%s)\n", LOCAL_Control_SERVER_PORT, strerror(errno));
         fflush(stdout);
@@ -75,22 +82,26 @@ ClientClass::ClientClass() {
 
     socklen_t serverAddrSize = sizeof (serverAddr);
 
+
     rc = sendto(server_socket, &info_c2s, sizeof (info_c2s), 0, (struct sockaddr*) &serverAddr, serverAddrSize);
+
     //    buf[rc] = 0;
     if (rc < 0) {
         printf("ERROR:\n  %ld Bytes gesendet (%s)\n", rc, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
-    printf("Client (%s:%d) hat %ld Bytes an Server (%s:%d) gesendet\n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc, inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+    printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
+    printf("an Server (%s:%d) gesendet\n", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
     //    printf("  Daten: |%s|\n", buf);
 
 
     struct init_info_server_to_client info_s2c;
 
-    rc = recvfrom(server_socket, &info_s2c, sizeof(info_s2c), 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
+    rc = recvfrom(server_socket, &info_s2c, sizeof (info_s2c), 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
     //    buf[rc] = 0;
-    printf("Client (%s:%d) hat %ld Bytes von Server (%s:%d) empfangen\n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc, inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+    printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
+    printf("von Server (%s:%d) empfangen\n", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
     //    printf("  Daten: |%s|\n", buf);
 
     int server_mess_port = 0;

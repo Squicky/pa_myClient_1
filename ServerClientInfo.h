@@ -10,6 +10,10 @@
 
 #include <time.h>
 
+
+#define SERVER_IP "192.168.120.241"
+#define CLIENT_IP "192.168.120.234"
+
 //#define paket_puffer_size 2048
 
 struct init_info_client_to_server {
