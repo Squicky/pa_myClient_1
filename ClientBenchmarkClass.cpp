@@ -19,10 +19,10 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
     stop = false;
     mess_paket_size = _mess_paket_size;
 
-    if (sizeof (paket_header) < mess_paket_size && mess_paket_size < (sizeof (paket))) {
+    if (sizeof (paket_header) < mess_paket_size && mess_paket_size < (MAX_PAKETSIZE - sizeof (paket_header))) {
 
     } else {
-        printf("ERROR:\n  paket_size muss zwischen %d und %d sein \n", sizeof (paket_header), (paket_puffer_size + sizeof (paket_header)));
+        printf("ERROR:\n  paket_size muss zwischen %d und %d sein \n", sizeof (paket_header), MAX_PAKETSIZE - sizeof (paket_header));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
@@ -48,6 +48,7 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
     meineAddr.sin_family = AF_INET;
     meineAddr.sin_port = htons(udp_rec_port);
     meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+//    meineAddr.sin_addr.s_addr = inet_addr("127.0.0.1")
 
     // serverAddr konfigurieren: IPv4, Port, Empfaenger IP
     serverAddr.sin_family = AF_INET;
@@ -117,7 +118,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     // Berechne Speichergröße für Array für Header eines ganzen Trains
     // bei max. UMTS Geschwindigkeit 
     // Da wir nur 500 ms lange senden wollen sollte das Array groß genug sein (fast doppelte Größe))
-    uint count_array_paket_header = max_umts_data_rate / mess_paket_size;
+    uint count_array_paket_header = MAX_UMTS_DATA_RATE / mess_paket_size;
     uint last_index_in_array_paket_header = count_array_paket_header - 1;
     uint paket_header_size = sizeof (paket_header);
     uint array_paket_header_size = count_array_paket_header * paket_header_size;
@@ -129,13 +130,14 @@ void ClientBenchmarkClass::rec_threadRun() {
         printf("ERROR:\n  Kein virtueller RAM mehr verfügbar \n");
         printf("  array_paket_header_recv: %p \n", array_paket_header_recv);
         printf("  array_paket_header_send: %p \n", array_paket_header_send);
+        fflush(stdout);
         exit(EXIT_FAILURE);
     }
 
     uint array_paket_header_recv_start = (uint) array_paket_header_recv;
     uint array_paket_header_recv_ende = array_paket_header_recv_start + array_paket_header_size - 1;
 
-    int paket_size = sizeof (paket);
+    int paket_size = paket_header_size + mess_paket_size;
     struct paket *arbeits_paket_recv = (struct paket *) malloc(paket_size);
     struct paket_header *arbeits_paket_header_recv = &(arbeits_paket_recv->header);
     struct paket *arbeits_paket_send = (struct paket *) malloc(paket_size);
@@ -150,13 +152,13 @@ void ClientBenchmarkClass::rec_threadRun() {
     }
 
     // mein_paket->puffer mit dezimal "83" (binär "01010011") füllen
-    memset((char *) &(arbeits_paket_send->puffer), 83, sizeof (arbeits_paket_send->puffer));
+    memset((char *) &(arbeits_paket_send->puffer), 83, mess_paket_size);
 
     // Es soll nur 1/2 Sek gesendet werden
     int mess_paket_size_doppelt = 2 * mess_paket_size;
 
     //    struct paket_header meinPaket;
-    arbeits_paket_header_send->token = -1;
+    //    arbeits_paket_header_send->token = -1;
     arbeits_paket_header_send->train_id = 0;
     arbeits_paket_header_send->paket_id = 0;
     arbeits_paket_header_send->train_send_countid = 0;
@@ -166,6 +168,10 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_send->send_time.tv_sec = 0;
     arbeits_paket_header_send->recv_data_rate = 64000 / 8; // 64 kBit/Sek.
     arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_send->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
+
+    if (arbeits_paket_header_send->count_pakets_in_train < 2) {
+        arbeits_paket_header_send->count_pakets_in_train = 2;
+    }
 
     long countBytes;
     int i;
@@ -187,8 +193,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     // Timeout fuer recvfrom auf 1 Sek setzen     
     struct timeval timeout_time;
-    timeout_time.tv_sec = 0;
-    timeout_time.tv_usec = 3500;
+    timeout_time.tv_sec = 0; // Anzahl Sekunden
+    timeout_time.tv_usec = 100000; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
     /*
     if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
         printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
@@ -239,8 +245,12 @@ void ClientBenchmarkClass::rec_threadRun() {
             }
         }
 
-        if (countBytes != mess_paket_size) {
+        if (countBytes == -1) {
+            printf("Timeout recvfrom:\n  %ld Bytes empfangen (%s)\n", countBytes, strerror(errno));
+        } else if (countBytes != mess_paket_size) {
             printf("ERROR:\n  %ld Bytes empfangen (%s)\n", countBytes, strerror(errno));
+            fflush(stdout);
+            exit(EXIT_FAILURE);
         }
 
         if (countBytes == -1) {
@@ -341,6 +351,8 @@ void ClientBenchmarkClass::rec_threadRun() {
                 x = (int) memcpy(&(array_paket_header_recv[index_paket]), arbeits_paket_header_recv, paket_header_size);
 
                 printf("Segmentation fault ? %u ### %d ### %d \n", ui, index_paket, x);
+                fflush(stdout);
+                exit(EXIT_FAILURE);
             }
 
         }
@@ -360,13 +372,15 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             if (last_index_in_array_paket_header < arbeits_paket_header_send->count_pakets_in_train) {
                 arbeits_paket_header_send->count_pakets_in_train = last_index_in_array_paket_header;
+            } else if (arbeits_paket_header_send->count_pakets_in_train < 2) {
+                arbeits_paket_header_send->count_pakets_in_train = 2;
             }
 
             // berechne neue Empfangsrate
             double time_diff;
             double count_all_bytes;
             double bytes_per_sek;
-            if (1 < index_paket) {
+            if (0 < index_paket) {
                 paket_header *aaastart = &array_paket_header_recv[0];
                 paket_header *aaaende = &array_paket_header_recv[index_paket];
 
@@ -427,6 +441,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
                 if (countBytes != mess_paket_size) {
                     printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
                 }
             }
 
@@ -441,7 +457,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
 
             index_paket = 0;
-//            printf("index_paket = 0; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, countBytes);
+            //            printf("index_paket = 0; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, countBytes);
             //            my_last_recv_paket_id = -1;
 
         } else {
@@ -450,13 +466,15 @@ void ClientBenchmarkClass::rec_threadRun() {
             //            if (arbeits_paket_header_recv->paket_id != (arbeits_paket_header_recv->count_pakets_in_train - 1)) {
             index_paket++;
             if (0 == index_paket % 50) {
-//                printf("index_paket++; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # count_id: %d # paket_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->paket_id, countBytes);
+                //                printf("index_paket++; index_paket: %d # my_max_recv_train_id: %d # train_id: %d # count_id: %d # paket_id: %d # countBytes: %ld\n", index_paket, my_max_recv_train_id, arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->paket_id, countBytes);
             }
-            
+
             if (0 <= index_paket && index_paket <= last_index_in_array_paket_header) {
                 //
             } else {
                 printf("Segmentation fault ? %u ### \n", index_paket);
+                fflush(stdout);
+                exit(EXIT_FAILURE);
             }
 
             //        }

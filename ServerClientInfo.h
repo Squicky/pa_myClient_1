@@ -10,7 +10,7 @@
 
 #include <time.h>
 
-#define paket_puffer_size 2048
+//#define paket_puffer_size 2048
 
 struct init_info_client_to_server {
     int paket_size;
@@ -21,10 +21,10 @@ struct init_info_server_to_client {
 };
 
 struct paket_header {
-    int token;
+//    int token;
     int train_id;
-    int paket_id;
     int train_send_countid;
+    int paket_id;
     int count_pakets_in_train;
     struct timespec recv_time;
     struct timespec send_time;
@@ -33,14 +33,9 @@ struct paket_header {
 
 struct paket {
     struct paket_header header;
-    char puffer[paket_puffer_size];
+    char *puffer;
 };
 
-/*
- * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
- * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
- */
-static int max_umts_data_rate = 115250000;
 
 #endif	/* SERVERCLIENTINFO_H */
 

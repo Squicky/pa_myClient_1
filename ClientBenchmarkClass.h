@@ -13,6 +13,19 @@
 #include <stdbool.h>
 
 #define LOCAL_Mess_PORT 8000
+#define MAX_PAKETSIZE 65535 // Max. UDP Paketgroeße (2^16) 
+/* 
+ * Prüfen: http://openbook.galileocomputing.de/linux_unix_programmierung/Kap11-016.htm#RxxKap11016040003951F04F100
+ * Trotzdem hat auch ein UDP-Paket eine maximale Größe, spätestens ab der Hardware (Ethernet: 1500 Bytes).
+ */
+
+/*
+ * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
+ * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
+ */
+#define MAX_UMTS_DATA_RATE 115250000 
+
+
 
 class ClientBenchmarkClass {
 public:
