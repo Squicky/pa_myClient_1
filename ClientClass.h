@@ -13,7 +13,7 @@
 
 #define Remote_Control_SERVER_PORT 5000
 #define LOCAL_Control_SERVER_PORT 6000
-#define PAKETSIZE 1000
+#define PAKETSIZE 100
 
 
 

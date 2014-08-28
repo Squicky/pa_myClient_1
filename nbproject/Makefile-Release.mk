@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/ClientBenchmarkClass.o \
 	${OBJECTDIR}/ClientClass.o \
+	${OBJECTDIR}/ListArrayClass.o \
 	${OBJECTDIR}/welcome.o
 
 
@@ -58,11 +59,11 @@ LDLIBSOPTIONS=
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myclient
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myclient: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1 ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myclient ${OBJECTFILES} ${LDLIBSOPTIONS}
 
 ${OBJECTDIR}/ClientBenchmarkClass.o: ClientBenchmarkClass.cpp 
 	${MKDIR} -p ${OBJECTDIR}
@@ -73,6 +74,11 @@ ${OBJECTDIR}/ClientClass.o: ClientClass.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ClientClass.o ClientClass.cpp
+
+${OBJECTDIR}/ListArrayClass.o: ListArrayClass.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ListArrayClass.o ListArrayClass.cpp
 
 ${OBJECTDIR}/welcome.o: welcome.cc 
 	${MKDIR} -p ${OBJECTDIR}
@@ -85,7 +91,7 @@ ${OBJECTDIR}/welcome.o: welcome.cc
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/myclient
 
 # Subprojects
 .clean-subprojects:

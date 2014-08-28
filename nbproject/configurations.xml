@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>ClientBenchmarkClass.h</itemPath>
       <itemPath>ClientClass.h</itemPath>
+      <itemPath>ListArrayClass.h</itemPath>
       <itemPath>ServerClientInfo.h</itemPath>
       <itemPath>welcome.h</itemPath>
     </logicalFolder>
@@ -18,6 +19,7 @@
                    projectFiles="true">
       <itemPath>ClientBenchmarkClass.cpp</itemPath>
       <itemPath>ClientClass.cpp</itemPath>
+      <itemPath>ListArrayClass.cpp</itemPath>
       <itemPath>welcome.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
@@ -46,6 +48,10 @@
       <item path="ClientClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ClientClass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ListArrayClass.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ListArrayClass.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ServerClientInfo.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -81,6 +87,10 @@
       <item path="ClientClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ClientClass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="ListArrayClass.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ListArrayClass.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ServerClientInfo.h" ex="false" tool="3" flavor2="0">
       </item>
