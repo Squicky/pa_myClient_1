@@ -11,11 +11,9 @@
 #include <time.h>
 
 
+
 #define SERVER_IP "192.168.220.236"
 #define CLIENT_IP "192.168.220.235"
-
-//#define SERVER_IP "192.168.120.233"
-//#define CLIENT_IP "192.168.220.235"
 
 //#define paket_puffer_size 2048
 
@@ -43,6 +41,9 @@ struct paket {
     char *puffer;
 };
 
+enum MessArt {
+    FesteZeit, FesteTrainLaenge
+};
 
 #endif	/* SERVERCLIENTINFO_H */
 

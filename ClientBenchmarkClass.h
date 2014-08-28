@@ -12,6 +12,8 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 
+#include "ClientBenchmarkClass.h"
+
 #define LOCAL_Mess_PORT 8000
 #define MAX_PAKETSIZE 65535 // Max. UDP Paketgroeße (2^16) 
 /* 
