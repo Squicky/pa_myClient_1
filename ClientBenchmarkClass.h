@@ -21,12 +21,6 @@
  * Trotzdem hat auch ein UDP-Paket eine maximale Größe, spätestens ab der Hardware (Ethernet: 1500 Bytes).
  */
 
-/*
- * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
- * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
- */
-#define MAX_UMTS_DATA_RATE 5250000 
-
 
 
 class ClientBenchmarkClass {

@@ -81,7 +81,7 @@ struct init_info_server_to_client {
 };
 
 struct paket_header {
-//    int token;
+    //    int token;
     int train_id;
     int train_send_countid;
     int paket_id;
@@ -89,6 +89,13 @@ struct paket_header {
     struct timespec recv_time;
     struct timespec send_time;
     int recv_data_rate; // Bytes per Sek
+
+    int recv_timeout_wait;
+    
+    int last_recv_train_id;
+    int last_recv_train_send_countid;
+    int last_recv_paket_id;
+     
 };
 
 struct paket {

@@ -25,7 +25,15 @@ ClientClass::ClientClass() {
     struct sockaddr_in serverAddr;
     struct sockaddr_in meineAddr;
     int server_socket;
-    //    int remote_Server_Addr_Size = sizeof (remote_Server_Addr);
+
+
+    if (sizeof (paket_header) < PAKETSIZE && PAKETSIZE < (MAX_PAKETSIZE - sizeof (paket_header))) {
+
+    } else {
+        printf("ERROR:\n  paket_size muss zwischen %d und %d sein \n", sizeof (paket_header), MAX_PAKETSIZE - sizeof (paket_header));
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+    }
 
     server_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (server_socket < 0) {
@@ -70,11 +78,11 @@ ClientClass::ClientClass() {
     rc = bind(server_socket, (struct sockaddr*) &meineAddr, sizeof (meineAddr));
 
     if (rc < 0) {
-        printf("ERROR:\n  Port %d kann nicht an Control UDP Socket gebunden werden:\n (%s)\n", LOCAL_Control_SERVER_PORT, strerror(errno));
+        printf("ERROR:\n  IP %s und Port %d kann nicht an Control UDP Socket gebunden werden:\n (%s)\n", inet_ntoa(serverAddr.sin_addr), LOCAL_Control_SERVER_PORT, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     } else {
-        printf("Port %d an Control UDP Socket gebunden :-) \n", LOCAL_Control_SERVER_PORT);
+        printf("IP %s und Port %d an Control UDP Socket gebunden :-) \n", inet_ntoa(serverAddr.sin_addr), LOCAL_Control_SERVER_PORT);
     }
 
     struct init_info_client_to_server info_c2s;
@@ -82,22 +90,32 @@ ClientClass::ClientClass() {
 
     socklen_t serverAddrSize = sizeof (serverAddr);
 
-
     rc = sendto(server_socket, &info_c2s, sizeof (info_c2s), 0, (struct sockaddr*) &serverAddr, serverAddrSize);
 
-    //    buf[rc] = 0;
-    if (rc < 0) {
+    printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
+    printf("an Server (%s:%d) gesendet\n", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+
+    if (rc != sizeof (info_c2s)) {
         printf("ERROR:\n  %ld Bytes gesendet (%s)\n", rc, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
-    printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
-    printf("an Server (%s:%d) gesendet\n", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
-    //    printf("  Daten: |%s|\n", buf);
-
 
     struct init_info_server_to_client info_s2c;
 
+    // Timeout fuer recvfrom auf 1 Sek setzen     
+    struct timeval timeout_time;
+    timeout_time.tv_sec = 10; // Anzahl Sekunden
+    timeout_time.tv_usec = 0; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
+
+    /*
+    if (setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+        printf("ERROR:\n  Kann Timeout fuer Control UDP Socket (CUS) nicht setzen: \n(%s)\n", strerror(errno));
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+    }
+*/
+    
     rc = recvfrom(server_socket, &info_s2c, sizeof (info_s2c), 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
     //    buf[rc] = 0;
     printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
@@ -109,13 +127,13 @@ ClientClass::ClientClass() {
     // Empfangene Nachricht vergleichen & untersuchen
     if (rc != sizeof (info_s2c)) {
 
-        printf("ERROR:\n  Verbindungs/Empfangs Probleme: Kein udp_rec_port");
+        printf("ERROR:\n  Verbindungs/Empfangs Probleme: sizeof (info_s2c)");
         fflush(stdout);
         exit(EXIT_FAILURE);
 
     } else if (0 == info_s2c.port) {
 
-        printf("ERROR:\n  Server Error: Kein udp_rec_port");
+        printf("ERROR:\n  Server Error: Kein udp_recv_port");
         fflush(stdout);
         exit(EXIT_FAILURE);
 

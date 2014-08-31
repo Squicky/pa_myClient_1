@@ -27,6 +27,9 @@ public:
     struct paket_header *last_paket_header;
     
     void save_to_file_and_clear();
+    
+    struct paket_header *give_paket_header(int index);
+    struct paket_header *give_paket_header(int train_id, int train_send_countid, int paket_id);
 
 private:
 
