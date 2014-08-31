@@ -36,7 +36,7 @@ iptables -t mangle -F POSTROUTING
 arp Tabelle anzeigen
 sudo arp
 
-arp eintrag l�schen
+arp eintrag loeschen
 sudo arp -d [IP]
 
 arp Eintrag hinzufuegen
@@ -69,7 +69,7 @@ sudo iptraf
     * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
     * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
     */
-#define MAX_UMTS_DATA_RATE 5250000
+#define MAX_UMTS_DATA_RATE 115250000
 
 
 struct init_info_client_to_server {
