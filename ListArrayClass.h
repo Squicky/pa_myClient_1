@@ -14,6 +14,7 @@
 class ListArrayClass {
 public:
     ListArrayClass(int _mess_paket_size);
+    ListArrayClass(int _mess_paket_size, char *_filename);
     virtual ~ListArrayClass();
 
     int count_paket_headers;
@@ -31,12 +32,15 @@ public:
     struct paket_header *give_paket_header(int index);
     struct paket_header *give_paket_header(int train_id, int train_send_countid, int paket_id);
 
+    int File_Deskriptor;
 private:
-
+    void clear();
+    
     struct paket_header *array_paket_header;
     ListArrayClass *nextListArrayClass;
     int mess_paket_size;
     int paket_header_size;
+    char filename[24];
 };
 
 #endif	/* LISTARRAYCLASS_H */

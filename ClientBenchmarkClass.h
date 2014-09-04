@@ -25,7 +25,7 @@
 
 class ClientBenchmarkClass {
 public:
-    ClientBenchmarkClass(char * _server_ip, int _server_rec_port, int _paket_size);
+    ClientBenchmarkClass(char * _server_ip, int _server_rec_port, int _paket_size, char _zeit_dateiname[]);
 /*    
     ClientBenchmarkClass(const ClientBenchmarkClass& orig);
     virtual ~ClientBenchmarkClass();
@@ -53,6 +53,8 @@ private:
 
     timespec timespec_diff_timespec(timespec start, timespec end);
     double timespec_diff_double(timespec start, timespec end);
+    
+    char zeit_dateiname[16];
 };
 
 #endif	/* CLIENTBENCHMARKCLASS_H */

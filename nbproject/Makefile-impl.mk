@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=myClient
+PROJECTNAME=pa_myClient_1
 
 # Active Configuration
 DEFAULTCONF=Debug

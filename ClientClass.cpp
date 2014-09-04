@@ -18,6 +18,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <time.h>
 
 ClientClass::ClientClass() {
     server_ip = (char*) SERVER_IP;
@@ -78,15 +79,22 @@ ClientClass::ClientClass() {
     rc = bind(server_socket, (struct sockaddr*) &meineAddr, sizeof (meineAddr));
 
     if (rc < 0) {
-        printf("ERROR:\n  IP %s und Port %d kann nicht an Control UDP Socket gebunden werden:\n (%s)\n", inet_ntoa(serverAddr.sin_addr), LOCAL_Control_SERVER_PORT, strerror(errno));
+        printf("ERROR:\n  IP %s und Port %d kann nicht an Control UDP Socket gebunden werden:\n (%s)\n", inet_ntoa(meineAddr.sin_addr), meineAddr.sin_port, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     } else {
-        printf("IP %s und Port %d an Control UDP Socket gebunden :-) \n", inet_ntoa(serverAddr.sin_addr), LOCAL_Control_SERVER_PORT);
+        printf("IP %s und Port %d an Control UDP Socket gebunden :-) \n", inet_ntoa(meineAddr.sin_addr), LOCAL_Control_SERVER_PORT);
     }
 
     struct init_info_client_to_server info_c2s;
     info_c2s.paket_size = PAKETSIZE;
+
+    struct tm *zeit;
+    time_t sekunde;
+    time(&sekunde);
+    zeit = localtime(&sekunde);
+    strftime(info_c2s.zeit_dateiname, sizeof(info_c2s.zeit_dateiname), "%Y%m%d_%H%M%S", zeit);
+    info_c2s.zeit_dateiname[16] = 0;
 
     socklen_t serverAddrSize = sizeof (serverAddr);
 
@@ -114,8 +122,8 @@ ClientClass::ClientClass() {
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
-*/
-    
+     */
+
     rc = recvfrom(server_socket, &info_s2c, sizeof (info_s2c), 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
     //    buf[rc] = 0;
     printf("Client (%s:%d) hat %ld Bytes ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port), rc);
@@ -152,7 +160,7 @@ ClientClass::ClientClass() {
     if (server_mess_port > 0) {
         printf("server_mess_port: %d \n", server_mess_port);
 
-        clientBenchmarkClass = new ClientBenchmarkClass(server_ip, server_mess_port, PAKETSIZE);
+        clientBenchmarkClass = new ClientBenchmarkClass(server_ip, server_mess_port, PAKETSIZE, info_c2s.zeit_dateiname);
 
         pthread_join(clientBenchmarkClass->rec_thread, NULL);
     }

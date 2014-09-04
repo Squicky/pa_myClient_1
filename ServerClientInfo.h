@@ -62,9 +62,12 @@ sudo iptraf
 
 #include <time.h>
 
-#define SERVER_IP "127.0.0.1"
-#define CLIENT_IP ""
+//#define SERVER_IP "127.0.0.1"
+//#define CLIENT_IP ""
+#define SERVER_IP "192.168.220.236"
+#define CLIENT_IP "192.168.220.235"
 
+ 
 /*
     * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
     * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
@@ -74,6 +77,7 @@ sudo iptraf
 
 struct init_info_client_to_server {
     int paket_size;
+    char zeit_dateiname[16];
 };
 
 struct init_info_server_to_client {
