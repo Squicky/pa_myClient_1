@@ -21,7 +21,10 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
     stop = false;
     mess_paket_size = _mess_paket_size;
 
-    memcpy(zeit_dateiname, _zeit_dateiname, sizeof (zeit_dateiname));
+    zeit_dateiname[0] = 0;
+    strncat(zeit_dateiname, "/home/user/pa_log_data/", sizeof (zeit_dateiname));
+    strncat(zeit_dateiname, _zeit_dateiname, sizeof (zeit_dateiname));
+    //    memcpy(zeit_dateiname, _zeit_dateiname, sizeof (zeit_dateiname));
 
     server_rec_port = _server_rec_port;
 
@@ -128,10 +131,10 @@ void ClientBenchmarkClass::rec_threadRun() {
     //    struct paket_header *array_paket_header_send = (paket_header*) malloc(array_paket_header_size);
 
     char puffer[256];
-    sprintf(puffer, "%s_sv_recv", this->zeit_dateiname);
+    sprintf(puffer, "%s_cl_recv.csv", this->zeit_dateiname);
     ListArrayClass *lac_recv = new ListArrayClass(mess_paket_size, puffer);
 
-    sprintf(puffer, "%s_sv_send", this->zeit_dateiname);
+    sprintf(puffer, "%s_cl_send.csv", this->zeit_dateiname);
 
     ListArrayClass *lac_send1 = new ListArrayClass(mess_paket_size, puffer);
     ListArrayClass *lac_send2 = new ListArrayClass(mess_paket_size);
@@ -358,7 +361,13 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             arbeits_paket_header_send->recv_data_rate = my_bytes_per_sek;
 
-            printf("Last: count: %d # ", lac_recv->count_paket_headers);
+            if (countBytes == -1) {
+                printf("L -1: count: %d # ", lac_recv->count_paket_headers);
+
+            } else {
+                printf("Last: count: %d # ", lac_recv->count_paket_headers);
+
+            }
             printf("train id: %d # ", arbeits_paket_header_recv->train_id);
             printf("train send countid : %d # ", arbeits_paket_header_recv->train_send_countid);
             printf("paket id: %d # ", arbeits_paket_header_recv->paket_id);
@@ -429,14 +438,16 @@ void ClientBenchmarkClass::rec_threadRun() {
                     if (x == NULL) {
                         x = lac_send1->give_paket_header(lac_recv->first_paket_header->last_recv_train_id, lac_recv->first_paket_header->last_recv_train_send_countid, lac_recv->first_paket_header->last_recv_paket_id);
                     }
-                    lac_send2->save_to_file_and_clear();
+//                    lac_send2->save_to_file_and_clear();
+                    lac_send2->clear();
                     lac_send3 = lac_send2;
                 } else {
                     x = lac_send1->give_paket_header(lac_recv->first_paket_header->last_recv_train_id, lac_recv->first_paket_header->last_recv_train_send_countid, lac_recv->first_paket_header->last_recv_paket_id);
                     if (x == NULL) {
                         x = lac_send2->give_paket_header(lac_recv->first_paket_header->last_recv_train_id, lac_recv->first_paket_header->last_recv_train_send_countid, lac_recv->first_paket_header->last_recv_paket_id);
                     }
-                    lac_send1->save_to_file_and_clear();
+//                    lac_send1->save_to_file_and_clear();
+                    lac_send1->clear();
                     lac_send3 = lac_send1;
                 }
 

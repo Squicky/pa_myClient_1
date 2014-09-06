@@ -54,7 +54,7 @@ private:
     timespec timespec_diff_timespec(timespec start, timespec end);
     double timespec_diff_double(timespec start, timespec end);
     
-    char zeit_dateiname[16];
+    char zeit_dateiname[256];
 };
 
 #endif	/* CLIENTBENCHMARKCLASS_H */

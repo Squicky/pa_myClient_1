@@ -32,6 +32,8 @@ ListArrayClass::ListArrayClass(int _mess_paket_size) {
     int array_paket_header_size = count_paket_header_in_one_array * paket_header_size;
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
+
+    log_file_ok = false;
 }
 
 ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
@@ -40,9 +42,7 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     count_arrays = 1;
     count_paket_headers = 0;
 
-    int i = strlen(_filename);
-    memcpy(filename, _filename, 23);
-    filename[23] = 0;
+    strncpy(filename, _filename, strlen(_filename));
 
     nextListArrayClass = NULL;
     first_paket_header = NULL;
@@ -55,6 +55,8 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
 
+    log_file_ok = false;
+
     // O_WRONLY nur zum Schreiben öffnen
     // O_RDWR zum Lesen und Schreiben öffnen
     // O_RDONLY nur zum Lesen öffnen
@@ -66,7 +68,6 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
         printf("ERROR:\n  Fehler beim Öffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
-
     } else {
 
         printf("Datei \"%s\" erstellt & geöffnet \n ", filename);
@@ -76,7 +77,7 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
 SchreibFehler:
         printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
         fflush(stdout);
-        exit(EXIT_FAILURE);
+        //        exit(EXIT_FAILURE);
 
 SchreibFehlerUeberspringen:
 
@@ -144,6 +145,8 @@ SchreibFehlerUeberspringen:
                 if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
          * */
 
+
+        log_file_ok = true;
     }
 }
 

@@ -135,13 +135,19 @@ ClientClass::ClientClass() {
     // Empfangene Nachricht vergleichen & untersuchen
     if (rc != sizeof (info_s2c)) {
 
-        printf("ERROR:\n  Verbindungs/Empfangs Probleme: sizeof (info_s2c)");
+        printf("ERROR:\n  Verbindungs/Empfangs Probleme: sizeof (info_s2c)\n");
         fflush(stdout);
         exit(EXIT_FAILURE);
 
     } else if (0 == info_s2c.port) {
 
-        printf("ERROR:\n  Server Error: Kein udp_recv_port");
+        printf("ERROR:\n  Server Error: Kein udp_recv_port\n");
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+
+    } else if (false == info_s2c.log_files_ok) {
+
+        printf("ERROR:\n  Server Error: Log Files sind nicht OK\n");
         fflush(stdout);
         exit(EXIT_FAILURE);
 

@@ -28,19 +28,20 @@ public:
     struct paket_header *last_paket_header;
     
     void save_to_file_and_clear();
+    void clear();
     
     struct paket_header *give_paket_header(int index);
     struct paket_header *give_paket_header(int train_id, int train_send_countid, int paket_id);
 
     int File_Deskriptor;
+    bool log_file_ok;
 private:
-    void clear();
     
     struct paket_header *array_paket_header;
     ListArrayClass *nextListArrayClass;
     int mess_paket_size;
     int paket_header_size;
-    char filename[24];
+    char filename[256];
 };
 
 #endif	/* LISTARRAYCLASS_H */

@@ -10,11 +10,6 @@
  * eth0: 192.168.120.233
  * eth1: 192.168.220.235
  * 
-
- * 
- * D830
- * 
- * 
  
 iptables -t nat -A POSTROUTING -o eth1 -d 192.168.220.236 -s 192.168.220.235 -j SNAT --to-source 192.168.120.234
 
@@ -67,7 +62,7 @@ sudo iptraf
 
 #include <time.h>
 
-#define SERVER_IP "192.168.120.233"
+#define SERVER_IP "127.0.0.1"
 #define CLIENT_IP ""
 //#define SERVER_IP "192.168.220.236"
 //#define CLIENT_IP "192.168.220.235"
@@ -87,6 +82,7 @@ struct init_info_client_to_server {
 
 struct init_info_server_to_client {
     int port;
+    bool log_files_ok;
 };
 
 struct paket_header {
