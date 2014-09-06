@@ -11,6 +11,10 @@
  * eth1: 192.168.220.235
  * 
 
+ * 
+ * D830
+ * 
+ 
 iptables -t nat -A POSTROUTING -o eth1 -d 192.168.220.236 -s 192.168.220.235 -j SNAT --to-source 192.168.120.234
 
 iptables -t nat -A PREROUTING -i eth0 -s 192.168.120.234 -d 192.168.220.236 -j DNAT --to-destination 192.168.120.233
@@ -62,10 +66,10 @@ sudo iptraf
 
 #include <time.h>
 
-//#define SERVER_IP "127.0.0.1"
-//#define CLIENT_IP ""
-#define SERVER_IP "192.168.220.236"
-#define CLIENT_IP "192.168.220.235"
+#define SERVER_IP "192.168.120.233"
+#define CLIENT_IP ""
+//#define SERVER_IP "192.168.220.236"
+//#define CLIENT_IP "192.168.220.235"
 
  
 /*
