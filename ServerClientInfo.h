@@ -14,6 +14,7 @@
  * 
  * D830
  * 
+ * 
  
 iptables -t nat -A POSTROUTING -o eth1 -d 192.168.220.236 -s 192.168.220.235 -j SNAT --to-source 192.168.120.234
 
