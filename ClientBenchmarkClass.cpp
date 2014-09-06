@@ -250,7 +250,7 @@ void ClientBenchmarkClass::rec_threadRun() {
         clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
 
         if (countBytes == -1) {
-            b = timespec_diff_timespec(a, arbeits_paket_header_recv->recv_time);
+            b = timespec_diff_timespec(&a, &arbeits_paket_header_recv->recv_time);
 
             if (b.tv_nsec < (timeout_time.tv_usec * 1000)) {
                 b.tv_sec++;
@@ -344,7 +344,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             if (1 < lac_recv->count_paket_headers) {
 
-                time_diff = timespec_diff_double(lac_recv->first_paket_header->recv_time, lac_recv->last_paket_header->recv_time);
+                time_diff = timespec_diff_double(&lac_recv->first_paket_header->recv_time, &lac_recv->last_paket_header->recv_time);
 
                 if (time_diff <= 0) {
                     printf("ERROR:\n  time_diff <= 0 \n");
@@ -429,6 +429,20 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf("gesendet %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
             fflush(stdout);
 
+            timespec *b = &(lac_send3->first_paket_header->send_time);
+            timespec *c = &(lac_send3->last_paket_header->send_time);
+            struct timespec a = timespec_diff_timespec(b, c);
+            if (a.tv_sec == 0) {
+                timeout_time.tv_sec = 0;
+                timeout_time.tv_usec = 1000000 - (a.tv_nsec / 1000);
+
+                if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+                    printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
+                }
+
+            }
 
             if (0 < lac_recv->count_paket_headers) {
                 struct paket_header *x;
@@ -438,7 +452,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                     if (x == NULL) {
                         x = lac_send1->give_paket_header(lac_recv->first_paket_header->last_recv_train_id, lac_recv->first_paket_header->last_recv_train_send_countid, lac_recv->first_paket_header->last_recv_paket_id);
                     }
-//                    lac_send2->save_to_file_and_clear();
+                    //                    lac_send2->save_to_file_and_clear();
                     lac_send2->clear();
                     lac_send3 = lac_send2;
                 } else {
@@ -446,14 +460,14 @@ void ClientBenchmarkClass::rec_threadRun() {
                     if (x == NULL) {
                         x = lac_send2->give_paket_header(lac_recv->first_paket_header->last_recv_train_id, lac_recv->first_paket_header->last_recv_train_send_countid, lac_recv->first_paket_header->last_recv_paket_id);
                     }
-//                    lac_send1->save_to_file_and_clear();
+                    //                    lac_send1->save_to_file_and_clear();
                     lac_send1->clear();
                     lac_send3 = lac_send1;
                 }
 
                 if (x != NULL) {
 
-                    double t = timespec_diff_double(x->send_time, lac_recv->first_paket_header->recv_time);
+                    double t = timespec_diff_double(&x->send_time, &lac_recv->first_paket_header->recv_time);
 
                     printf("rtt ist %f  \n", t);
                 }
@@ -489,20 +503,20 @@ void ClientBenchmarkClass::rec_threadRun() {
  * 1 Sek =     1.000.000 Mikrosekunden 
  * 1 Sek = 1.000.000.000 Nanosekunden 
  */
-timespec ClientBenchmarkClass::timespec_diff_timespec(timespec start, timespec end) {
+timespec ClientBenchmarkClass::timespec_diff_timespec(timespec *start, timespec *end) {
     timespec temp;
 
-    if (end.tv_nsec < start.tv_nsec) {
-        temp.tv_sec = end.tv_sec - start.tv_sec - 1;
-        temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+    if (end->tv_nsec < start->tv_nsec) {
+        temp.tv_sec = end->tv_sec - start->tv_sec - 1;
+        temp.tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec;
     } else {
-        temp.tv_sec = end.tv_sec - start.tv_sec;
-        temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+        temp.tv_sec = end->tv_sec - start->tv_sec;
+        temp.tv_nsec = end->tv_nsec - start->tv_nsec;
     }
     return temp;
 }
 
-double ClientBenchmarkClass::timespec_diff_double(timespec start, timespec end) {
+double ClientBenchmarkClass::timespec_diff_double(timespec *start, timespec *end) {
     timespec temp = timespec_diff_timespec(start, end);
 
     double temp2 = temp.tv_nsec;
