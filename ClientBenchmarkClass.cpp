@@ -175,6 +175,29 @@ void ClientBenchmarkClass::rec_threadRun() {
     // Es soll nur 1/2 Sek gesendet werden
     int mess_paket_size_doppelt = 2 * mess_paket_size;
 
+    // Timeout fuer recvfrom auf 1 Sek setzen     
+    struct timeval timeout_time;
+    timeout_time.tv_sec = 0; // Anzahl Sekunden
+    timeout_time.tv_usec = 100000; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
+
+    /*
+    //    int abc;
+    //    timespec a,b;
+    //    clock_gettime(CLOCK_REALTIME, &a);
+    //    for (abc = 1; abc < 25000000; abc++) {
+    //        timeout_time.tv_usec = abc % 1000000;
+    if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+        //            printf(" %d \n", abc);
+        printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+    }
+    //    }
+    //    clock_gettime(CLOCK_REALTIME, &b);
+    printf(" time: %f \n", timespec_diff_double(&a, &b));
+*/
+
+
     //    struct paket_header meinPaket;
     //    arbeits_paket_header_send->token = -1;
     arbeits_paket_header_send->train_id = 0;
@@ -195,7 +218,6 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     long countBytes;
     int i;
-
     printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
     for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
         arbeits_paket_header_send->paket_id = i;
@@ -209,23 +231,6 @@ void ClientBenchmarkClass::rec_threadRun() {
             lac_send3->copy_paket_header(arbeits_paket_header_send);
         }
     }
-
-
-    // Timeout fuer recvfrom auf 1 Sek setzen     
-    struct timeval timeout_time;
-    timeout_time.tv_sec = 0; // Anzahl Sekunden
-    timeout_time.tv_usec = 100000; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
-    /*
-    if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
-        printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
-        fflush(stdout);
-        exit(EXIT_FAILURE);
-    }
-     * */
-
-    //    int index_paket = 0;
-
-    //    int my_last_recv_paket_id = -1;
 
     int my_last_send_train_id = -1;
     int my_recv_train_send_countid = -1;
@@ -241,21 +246,9 @@ void ClientBenchmarkClass::rec_threadRun() {
     printf("UDP Mess-Socket (UMS) (%s:%d) wartet auf Daten ... \n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     while (stop == false) {
 
-        timespec a, b;
-
-        clock_gettime(CLOCK_REALTIME, &a);
-
         countBytes = recvfrom(server_mess_socket, arbeits_paket_recv, paket_size, 0, (struct sockaddr *) &serverAddr, &serverAddrSize);
 
         clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
-
-        if (countBytes == -1) {
-            b = timespec_diff_timespec(&a, &arbeits_paket_header_recv->recv_time);
-
-            if (b.tv_nsec < (timeout_time.tv_usec * 1000)) {
-                b.tv_sec++;
-            }
-        }
 
         if (set_timeout == 0) {
             set_timeout = 1;
@@ -426,8 +419,6 @@ void ClientBenchmarkClass::rec_threadRun() {
                     lac_send3->copy_paket_header(arbeits_paket_header_send);
                 }
             }
-            printf("gesendet %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
-            fflush(stdout);
 
             timespec *b = &(lac_send3->first_paket_header->send_time);
             timespec *c = &(lac_send3->last_paket_header->send_time);
@@ -435,6 +426,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             if (a.tv_sec == 0) {
                 timeout_time.tv_sec = 0;
                 timeout_time.tv_usec = 1000000 - (a.tv_nsec / 1000);
+                timeout_time.tv_usec = 35000;
 
                 if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                     printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
@@ -443,6 +435,9 @@ void ClientBenchmarkClass::rec_threadRun() {
                 }
 
             }
+
+            printf("gesendet %d Pakete # train_id: %d # send_countid: %d  # \n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
+            fflush(stdout);
 
             if (0 < lac_recv->count_paket_headers) {
                 struct paket_header *x;
@@ -483,7 +478,8 @@ void ClientBenchmarkClass::rec_threadRun() {
                 }
             }
 
-            lac_recv->save_to_file_and_clear();
+            //            lac_recv->save_to_file_and_clear();
+            lac_recv->clear();
 
         }
 
