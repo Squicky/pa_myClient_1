@@ -195,7 +195,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     //    }
     //    clock_gettime(CLOCK_REALTIME, &b);
     printf(" time: %f \n", timespec_diff_double(&a, &b));
-*/
+     */
 
 
     //    struct paket_header meinPaket;
@@ -319,7 +319,12 @@ void ClientBenchmarkClass::rec_threadRun() {
         if (
                 (countBytes == -1)
                 ||
-                (arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1))
+                (
+                my_max_recv_train_id == arbeits_paket_header_recv->train_id
+                && my_recv_train_send_countid == arbeits_paket_header_recv->train_send_countid
+                && arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1)
+                )
+                //                arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1))
                 ) {
 
             arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_recv->recv_data_rate / mess_paket_size_doppelt;
@@ -365,7 +370,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf("train send countid : %d # ", arbeits_paket_header_recv->train_send_countid);
             printf("paket id: %d # ", arbeits_paket_header_recv->paket_id);
             printf("count in t: %d # ", arbeits_paket_header_recv->count_pakets_in_train);
-            printf("recv %.2f %% # ", (double) ((double) lac_recv->count_paket_headers / (double) arbeits_paket_header_send->count_pakets_in_train) * 100.0);
+            printf("recv %.2f %% # ", (double) ((double) lac_recv->count_paket_headers / (double) arbeits_paket_header_recv->count_pakets_in_train) * 100.0);
             printf("time_diff: %.2f # ", time_diff);
             if (bytes_per_sek >= 1024 * 1024) {
                 printf("data_rate: %.2f MB / Sek \n", bytes_per_sek / (1024 * 1024));
@@ -401,10 +406,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
             fflush(stdout);
-            if (20000 < arbeits_paket_header_send->count_pakets_in_train) {
-                i = 2;
-            }
-
+            
+            timespec x_timespec;
             for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
                 arbeits_paket_header_send->paket_id = i;
                 clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
@@ -418,6 +421,13 @@ void ClientBenchmarkClass::rec_threadRun() {
                 } else {
                     lac_send3->copy_paket_header(arbeits_paket_header_send);
                 }
+
+                // Wenn Paket Train über 0,5 Sekunden gesendet wird, dann Paket Train kürzen
+                x_timespec = timespec_diff_timespec(&lac_send3->first_paket_header->send_time, &arbeits_paket_header_send->send_time);
+                if (500000000 < x_timespec.tv_nsec) {
+                    arbeits_paket_header_send->count_pakets_in_train = i + 2;
+                }
+                
             }
 
             timespec *b = &(lac_send3->first_paket_header->send_time);
@@ -426,7 +436,6 @@ void ClientBenchmarkClass::rec_threadRun() {
             if (a.tv_sec == 0) {
                 timeout_time.tv_sec = 0;
                 timeout_time.tv_usec = 1000000 - (a.tv_nsec / 1000);
-                timeout_time.tv_usec = 35000;
 
                 if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                     printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
