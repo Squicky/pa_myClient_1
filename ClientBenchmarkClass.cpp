@@ -208,7 +208,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_send->recv_time.tv_sec = 0;
     arbeits_paket_header_send->send_time.tv_nsec = 0;
     arbeits_paket_header_send->send_time.tv_sec = 0;
-    arbeits_paket_header_send->recv_data_rate = 64000 / 8; // 64 kBit/Sek.
+    arbeits_paket_header_send->recv_data_rate = START_RECV_DATA_RATE / 8;
     arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_send->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
 
     arbeits_paket_header_send->recv_timeout_wait = -1;
@@ -384,7 +384,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                 printf("recv %.4f %% # ", (double) ((double) lac_recv->count_paket_headers / (double) arbeits_paket_header_recv->count_pakets_in_train) * 100.0);
             }
             printf("time_diff: %.4f # ", time_diff_recv);
-            double mbits_per_sek_recv = bytes_per_sek_recv / 8;
+            double mbits_per_sek_recv = bytes_per_sek_recv * 8;
             mbits_per_sek_recv = mbits_per_sek_recv / 1000000;
             printf("data_rate: %.4f MBits/Sek        \n", mbits_per_sek_recv);
 
@@ -420,13 +420,13 @@ void ClientBenchmarkClass::rec_threadRun() {
                 arbeits_paket_header_send->paket_id = i;
                 clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
 
-//                printf("\r sende: %d # ", i);
-//                fflush(stdout);
+                //                printf("\r sende: %d # ", i);
+                //                fflush(stdout);
 
                 countBytes = sendto(server_mess_socket, arbeits_paket_send, mess_paket_size - 8 - 20 - 26, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
 
-//                printf(" gesende: %d # countBytes: %ld", i, countBytes);
-//                fflush(stdout);
+                //                printf(" gesende: %d # countBytes: %ld", i, countBytes);
+                //                fflush(stdout);
 
                 if (countBytes != mess_paket_size - 8 - 20 - 26) {
                     printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));
@@ -436,40 +436,40 @@ void ClientBenchmarkClass::rec_threadRun() {
                     lac_send3->copy_paket_header(arbeits_paket_header_send);
                 }
 
-//                printf(" aa: %d #", i);
-//                fflush(stdout);
+                //                printf(" aa: %d #", i);
+                //                fflush(stdout);
 
                 if (i == (arbeits_paket_header_send->count_pakets_in_train - 1)) {
-//                    printf(" bb: %d #", i);
-//                    fflush(stdout);
+                    //                    printf(" bb: %d #", i);
+                    //                    fflush(stdout);
 
                     i++;
                     i--;
                 } else {
-//                    printf("cc: %d #", i);
-//                    fflush(stdout);
+                    //                    printf("cc: %d #", i);
+                    //                    fflush(stdout);
 
                     // Wenn Paket Train über 0,5 Sekunden gesendet wird, dann Paket Train kürzen
                     x_timespec = timespec_diff_timespec(&lac_send3->first_paket_header->send_time, &arbeits_paket_header_send->send_time);
                     if (500000000 < x_timespec.tv_nsec) {
-//                        printf(" dd: %d #", i);
-//                        fflush(stdout);
+                        //                        printf(" dd: %d #", i);
+                        //                        fflush(stdout);
 
                         arbeits_paket_header_send->count_pakets_in_train = i + 2;
                     } else if (1 < i) {
-//                        printf(" ee: %d #", i);
-//                        fflush(stdout);
+                        //                        printf(" ee: %d #", i);
+                        //                        fflush(stdout);
 
                         // Paket max. doppelt so schnell senden, wie vom Empfänger der Recv gewünscht
                         // sonst sleep
                         count_all_bytes_send = i * mess_paket_size;
                         time_diff_send = (double) x_timespec.tv_nsec / 1000000000.0;
                         bytes_per_sek_send = count_all_bytes_send / time_diff_send;
-                        
-                        double max_send_faktor = 1.1;
+
+                        double max_send_faktor = 1.7;
                         if ((max_send_faktor * arbeits_paket_header_recv->recv_data_rate) < bytes_per_sek_send) {
-//                            printf(" ff: %d #", i);
-//                            fflush(stdout);
+                            //                            printf(" ff: %d #", i);
+                            //                            fflush(stdout);
 
                             double soll_send_time = count_all_bytes_send / (max_send_faktor * arbeits_paket_header_recv->recv_data_rate);
 
@@ -477,8 +477,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
                             int sleep_time_microsec = 1000000 * sleep_time;
 
-//                            printf(" gg: %d | %d#", i, sleep_time_microsec);
-//                            fflush(stdout);
+                            //                            printf(" gg: %d | %d#", i, sleep_time_microsec);
+                            //                            fflush(stdout);
 
                             if (sleep_time_microsec < 0 || 1000000 < sleep_time_microsec) {
                                 sleep_time_microsec++;
@@ -487,8 +487,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
                             usleep(sleep_time_microsec);
 
-//                            printf(" hh: %d #", i);
-//                            fflush(stdout);
+                            //                            printf(" hh: %d #", i);
+                            //                            fflush(stdout);
 
                             send_sleep_total = send_sleep_total + sleep_time_microsec;
                             send_sleep_count++;
@@ -497,13 +497,13 @@ void ClientBenchmarkClass::rec_threadRun() {
                     }
                 }
 
-//                printf(" zz: %d #", i);
-//                fflush(stdout);
+                //                printf(" zz: %d #", i);
+                //                fflush(stdout);
 
             }
 
-//            printf(" \n ");
-//            fflush(stdout);
+            //            printf(" \n ");
+            //            fflush(stdout);
 
             if (arbeits_paket_header_send->train_id == 2) {
                 i++;
@@ -531,7 +531,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                     arbeits_paket_header_send->train_id,
                     arbeits_paket_header_send->train_send_countid,
                     (double) x_timespec.tv_nsec / 1000000000.0,
-                    (double) timeout_time.tv_usec / 1000000.0, 
+                    (double) timeout_time.tv_usec / 1000000.0,
                     send_sleep_count,
                     send_sleep_total);
 
