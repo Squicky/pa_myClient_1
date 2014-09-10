@@ -62,10 +62,10 @@ sudo iptraf
 
 #include <time.h>
 
-//#define SERVER_IP "172.20.100.100"
-//#define CLIENT_IP ""
-#define SERVER_IP "192.168.220.236"
-#define CLIENT_IP "192.168.220.235"
+#define SERVER_IP "192.168.2.144"
+#define CLIENT_IP ""
+//#define SERVER_IP "192.168.220.236"
+//#define CLIENT_IP "192.168.220.235"
 
  
 /*
