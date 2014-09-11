@@ -38,8 +38,11 @@
       </toolsSet>
       <compileType>
         <ccTool>
-          <commandLine>-pthread</commandLine>
+          <commandLine>-pthread -m32</commandLine>
         </ccTool>
+        <linkerTool>
+          <commandLine>-lrt</commandLine>
+        </linkerTool>
       </compileType>
       <item path="ClientBenchmarkClass.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -271,6 +271,13 @@ void ClientBenchmarkClass::rec_threadRun() {
         if (countBytes == -1) {
             //          sleep(1);
         } else {
+            
+            if (arbeits_paket_header_recv->train_id == 11 &&
+                    arbeits_paket_header_recv->train_send_countid == 0 &&
+                    arbeits_paket_header_recv->paket_id == 4) {
+                arbeits_paket_header_recv->train_id++;
+                arbeits_paket_header_recv->train_id--;
+            }
 
             if (arbeits_paket_header_recv->train_id < my_max_send_train_id) {
                 lac_recv->copy_paket_header(arbeits_paket_header_recv);
@@ -329,11 +336,13 @@ void ClientBenchmarkClass::rec_threadRun() {
                 ) {
 
             arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_recv->recv_data_rate / mess_paket_size_doppelt;
+            
+            printf("recv: trainid: %d | send_countid: %d | data_rate: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->recv_data_rate);
 
             if (lac_recv->last_index_of_paket_header_in_one_array < arbeits_paket_header_send->count_pakets_in_train) {
                 arbeits_paket_header_send->count_pakets_in_train = lac_recv->last_index_of_paket_header_in_one_array;
-            } else if (arbeits_paket_header_send->count_pakets_in_train < 2) {
-                arbeits_paket_header_send->count_pakets_in_train = 2;
+            } else if (arbeits_paket_header_send->count_pakets_in_train < 5) {
+                arbeits_paket_header_send->count_pakets_in_train = 5;
             }
 
             // berechne neue Empfangsrate
@@ -417,6 +426,12 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             timespec x_timespec;
             for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
+                
+                if (arbeits_paket_header_send->count_pakets_in_train == 5 ) {
+                    arbeits_paket_header_send->count_pakets_in_train++;
+                    arbeits_paket_header_send->count_pakets_in_train--;
+                }
+                
                 arbeits_paket_header_send->paket_id = i;
                 clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
 
@@ -455,7 +470,9 @@ void ClientBenchmarkClass::rec_threadRun() {
                         //                        printf(" dd: %d #", i);
                         //                        fflush(stdout);
 
-                        arbeits_paket_header_send->count_pakets_in_train = i + 2;
+                        if (4 < i) {
+                            arbeits_paket_header_send->count_pakets_in_train = i + 2;                            
+                        }
                     } else if (1 < i) {
                         //                        printf(" ee: %d #", i);
                         //                        fflush(stdout);
@@ -466,7 +483,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                         time_diff_send = (double) x_timespec.tv_nsec / 1000000000.0;
                         bytes_per_sek_send = count_all_bytes_send / time_diff_send;
 
-                        double max_send_faktor = 1.7;
+                        double max_send_faktor = 2.5;
                         if ((max_send_faktor * arbeits_paket_header_recv->recv_data_rate) < bytes_per_sek_send) {
                             //                            printf(" ff: %d #", i);
                             //                            fflush(stdout);
@@ -483,9 +500,10 @@ void ClientBenchmarkClass::rec_threadRun() {
                             if (sleep_time_microsec < 0 || 1000000 < sleep_time_microsec) {
                                 sleep_time_microsec++;
                                 sleep_time_microsec--;
+                            } else {
+//                                usleep(sleep_time_microsec);                                
                             }
 
-                            usleep(sleep_time_microsec);
 
                             //                            printf(" hh: %d #", i);
                             //                            fflush(stdout);

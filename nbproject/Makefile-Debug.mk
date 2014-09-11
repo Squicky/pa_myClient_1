@@ -45,8 +45,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-pthread
-CXXFLAGS=-pthread
+CCFLAGS=-pthread -m32
+CXXFLAGS=-pthread -m32
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -63,7 +63,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1 ${OBJECTFILES} ${LDLIBSOPTIONS}
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1 ${OBJECTFILES} ${LDLIBSOPTIONS} -lrt
 
 ${OBJECTDIR}/ClientBenchmarkClass.o: ClientBenchmarkClass.cpp 
 	${MKDIR} -p ${OBJECTDIR}

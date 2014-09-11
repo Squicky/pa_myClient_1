@@ -62,10 +62,10 @@ sudo iptraf
 
 #include <time.h>
 
-//#define SERVER_IP "192.168.2.144"
-//#define CLIENT_IP ""
-#define SERVER_IP "192.168.220.236"
-#define CLIENT_IP "192.168.220.235"
+#define SERVER_IP "192.168.2.227"
+#define CLIENT_IP ""
+//#define SERVER_IP "192.168.220.236"
+//#define CLIENT_IP "192.168.220.235"
 
  
 /*
@@ -94,8 +94,6 @@ struct paket_header {
     int train_send_countid;
     int paket_id;
     int count_pakets_in_train;
-    struct timespec recv_time;
-    struct timespec send_time;
     int recv_data_rate; // Bytes per Sek
 
     int recv_timeout_wait;
@@ -103,7 +101,9 @@ struct paket_header {
     int last_recv_train_id;
     int last_recv_train_send_countid;
     int last_recv_paket_id;
-     
+
+    struct timespec recv_time;
+    struct timespec send_time;     
 };
 
 struct paket {
