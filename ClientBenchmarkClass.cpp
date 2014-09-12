@@ -209,6 +209,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_send->send_time.tv_nsec = 0;
     arbeits_paket_header_send->send_time.tv_sec = 0;
     arbeits_paket_header_send->recv_data_rate = START_RECV_DATA_RATE / 8;
+
     arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_send->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
 
     arbeits_paket_header_send->recv_timeout_wait = -1;
@@ -332,12 +333,11 @@ void ClientBenchmarkClass::rec_threadRun() {
                 && my_recv_train_send_countid == arbeits_paket_header_recv->train_send_countid
                 && arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1)
                 )
-                //                arbeits_paket_header_recv->paket_id == (arbeits_paket_header_recv->count_pakets_in_train - 1))
                 ) {
 
             arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_recv->recv_data_rate / mess_paket_size_doppelt;
 
-            printf("recv: trainid: %d | send_countid: %d | data_rate: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->recv_data_rate);
+//            printf("recv: trainid: %d | send_countid: %d | data_rate: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->recv_data_rate);
 
             if (lac_recv->last_index_of_paket_header_in_one_array < arbeits_paket_header_send->count_pakets_in_train) {
                 arbeits_paket_header_send->count_pakets_in_train = lac_recv->last_index_of_paket_header_in_one_array;
@@ -381,7 +381,6 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             } else {
                 printf("Last: count: %d # ", lac_recv->count_paket_headers);
-
             }
             printf("train id: %d # ", arbeits_paket_header_recv->train_id);
             printf("train send countid : %d # ", arbeits_paket_header_recv->train_send_countid);
@@ -397,11 +396,6 @@ void ClientBenchmarkClass::rec_threadRun() {
             mbits_per_sek_recv = mbits_per_sek_recv / 1000000;
             printf("data_rate: %.4f MBits/Sek        \n", mbits_per_sek_recv);
 
-            int my_bits_per_sek = 8 * my_bytes_per_sek;
-            if (30000000 < my_bits_per_sek) {
-                i = 2;
-            }
-
             arbeits_paket_header_send->train_id = my_max_recv_train_id + 1;
 
             if (my_last_send_train_id < arbeits_paket_header_send->train_id) {
@@ -414,7 +408,6 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             my_last_send_train_id = arbeits_paket_header_send->train_id;
 
-
             if (0 < lac_recv->count_paket_headers) {
                 arbeits_paket_header_send->last_recv_train_id = lac_recv->last_paket_header->train_id;
                 arbeits_paket_header_send->last_recv_train_send_countid = lac_recv->last_paket_header->train_send_countid;
@@ -424,24 +417,15 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf("sende %d Pakete # train_id: %d # send_countid: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->train_send_countid);
             fflush(stdout);
 
-            timespec x_timespec;
+            timespec train_sending_time;
+            timespec *first_paket_train_send_time;
+            timespec *last_paket_train_send_time;
             for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
-
-                if (arbeits_paket_header_send->count_pakets_in_train == 5) {
-                    arbeits_paket_header_send->count_pakets_in_train++;
-                    arbeits_paket_header_send->count_pakets_in_train--;
-                }
 
                 arbeits_paket_header_send->paket_id = i;
                 clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_send->send_time));
 
-                //                printf("\r sende: %d # ", i);
-                //                fflush(stdout);
-
                 countBytes = sendto(server_mess_socket, arbeits_paket_send, mess_paket_size - 8 - 20 - 26, 0, (struct sockaddr*) &serverAddr, serverAddrSize);
-
-                //                printf(" gesende: %d # countBytes: %ld", i, countBytes);
-                //                fflush(stdout);
 
                 if (countBytes != mess_paket_size - 8 - 20 - 26) {
                     printf("ERROR:\n  %ld Bytes gesendet (%s)\n", countBytes, strerror(errno));
@@ -451,51 +435,33 @@ void ClientBenchmarkClass::rec_threadRun() {
                     lac_send3->copy_paket_header(arbeits_paket_header_send);
                 }
 
-                //                printf(" aa: %d #", i);
-                //                fflush(stdout);
-
-                if (i == (arbeits_paket_header_send->count_pakets_in_train - 1)) {
-                    //                    printf(" bb: %d #", i);
-                    //                    fflush(stdout);
-
-                    i++;
-                    i--;
+                if (i == 0) {
+                    first_paket_train_send_time = &(lac_send3->last_paket_header->send_time);
+                } else if (i == (arbeits_paket_header_send->count_pakets_in_train - 1)) {
+                    last_paket_train_send_time = &(lac_send3->last_paket_header->send_time);
                 } else {
-                    //                    printf("cc: %d #", i);
-                    //                    fflush(stdout);
-
                     // Wenn Paket Train über 0,5 Sekunden gesendet wird, dann Paket Train kürzen
-                    x_timespec = timespec_diff_timespec(&lac_send3->first_paket_header->send_time, &arbeits_paket_header_send->send_time);
-                    if (500000000 < x_timespec.tv_nsec) {
-                        //                        printf(" dd: %d #", i);
-                        //                        fflush(stdout);
-
+                    train_sending_time = timespec_diff_timespec(first_paket_train_send_time, &(arbeits_paket_header_send->send_time));
+                    if (500000000 < train_sending_time.tv_nsec || 0 < train_sending_time.tv_sec) {
                         if (4 < i) {
                             arbeits_paket_header_send->count_pakets_in_train = i + 2;
                         }
                     } else if (1 < i) {
-                        //                        printf(" ee: %d #", i);
-                        //                        fflush(stdout);
 
                         // Paket max. doppelt so schnell senden, wie vom Empfänger der Recv gewünscht
                         // sonst sleep
                         count_all_bytes_send = i * mess_paket_size;
-                        time_diff_send = (double) x_timespec.tv_nsec / 1000000000.0;
+                        time_diff_send = (double) train_sending_time.tv_nsec / 1000000000.0;
                         bytes_per_sek_send = count_all_bytes_send / time_diff_send;
 
-                        double max_send_faktor = 1.001;
+                        double max_send_faktor = 1.25;
                         if ((max_send_faktor * arbeits_paket_header_recv->recv_data_rate) < bytes_per_sek_send) {
-                            //                            printf(" ff: %d #", i);
-                            //                            fflush(stdout);
 
                             double soll_send_time = count_all_bytes_send / (max_send_faktor * arbeits_paket_header_recv->recv_data_rate);
 
                             double sleep_time = soll_send_time - time_diff_send;
 
                             int sleep_time_microsec = 1000000 * sleep_time;
-
-                            //                            printf(" gg: %d | %d#", i, sleep_time_microsec);
-                            //                            fflush(stdout);
 
                             if (sleep_time_microsec < 0 || 1000000 < sleep_time_microsec) {
                                 sleep_time_microsec++;
@@ -504,10 +470,6 @@ void ClientBenchmarkClass::rec_threadRun() {
                                 usleep(sleep_time_microsec);
                             }
 
-
-                            //                            printf(" hh: %d #", i);
-                            //                            fflush(stdout);
-
                             send_sleep_total = send_sleep_total + sleep_time_microsec;
                             send_sleep_count++;
                         }
@@ -515,40 +477,49 @@ void ClientBenchmarkClass::rec_threadRun() {
                     }
                 }
 
-                //                printf(" zz: %d #", i);
-                //                fflush(stdout);
-
             }
-
-            //            printf(" \n ");
-            //            fflush(stdout);
 
             if (arbeits_paket_header_send->train_id == 2) {
                 i++;
                 i--;
             }
 
-            timespec *b = &(lac_send3->first_paket_header->send_time);
-            timespec *c = &(lac_send3->last_paket_header->send_time);
-            struct timespec a = timespec_diff_timespec(b, c);
+            // Recv Timeout fuer RTT von 1 Sek  berechnen
+            // 1 Sek = Soll Zeit fuer letztes Paket vom nechsten recv. Train
+            //            timespec *b = first_paket_train_time_send;
+            train_sending_time = timespec_diff_timespec(first_paket_train_send_time, last_paket_train_send_time);
+            if (train_sending_time.tv_sec == 0) {
 
-            if (a.tv_sec == 0) {
-                //                timeout_time.tv_sec = 0;
-                timeout_time.tv_usec = 1000000 - (a.tv_nsec / 1000);
+                timeout_time.tv_sec = 0;
+                timeout_time.tv_usec = 1000000 - (train_sending_time.tv_nsec / 1000);
+
+                // Wenn keine Daten empfangen, dann Verdacht auch Train Lost
+                // dann Recv Timeout verlaengern
+                if (lac_recv->count_paket_headers == 0) {
+                    if (1 < arbeits_paket_header_send->train_send_countid) {
+                        timeout_time.tv_usec = timeout_time.tv_usec * (1 + arbeits_paket_header_send->train_send_countid);
+                        timeout_time.tv_sec = timeout_time.tv_usec / 1000000;
+                        timeout_time.tv_usec = timeout_time.tv_usec % 1000000;
+
+                        if (5 < timeout_time.tv_sec) {
+                            timeout_time.tv_sec = 5;
+                        }
+                    }
+                }
 
                 if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                     printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
                     fflush(stdout);
                     exit(EXIT_FAILURE);
                 }
-
             }
 
-            printf("gesendet %d Pakete # train_id: %d # send_countid: %d # sendTime: %.5f # RecvTimeout. %.5f # sleep: %ld | %ld \n",
+            printf("gesendet %d Pakete # train_id: %d # send_countid: %d # sendTime: %.5f # RecvTimeout. %ld,%.5f # sleep: %ld | %ld        \n",
                     arbeits_paket_header_send->count_pakets_in_train,
                     arbeits_paket_header_send->train_id,
                     arbeits_paket_header_send->train_send_countid,
-                    (double) x_timespec.tv_nsec / 1000000000.0,
+                    (double) train_sending_time.tv_nsec / 1000000000.0,
+                    timeout_time.tv_sec,
                     (double) timeout_time.tv_usec / 1000000.0,
                     send_sleep_count,
                     send_sleep_total);
@@ -590,7 +561,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
                 if (my_max_train_id < my_max_send_train_id) {
                     my_max_train_id = my_max_send_train_id;
-                    printf("my_max_train_id send: %d \n", my_max_train_id);
+                    printf("my_max_train_id send: %d    # sendTime: %.5f  # RecvTimeout. %.5f    \n", my_max_train_id, (double) train_sending_time.tv_nsec / 1000000000.0, (double) timeout_time.tv_usec / 1000000.0);
                 }
             }
 
@@ -603,9 +574,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     delete (lac_recv);
     delete (arbeits_paket_recv);
-    delete (arbeits_paket_header_recv);
     delete (arbeits_paket_send);
-    delete (arbeits_paket_header_send);
 }
 
 /*

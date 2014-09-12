@@ -62,16 +62,19 @@ sudo iptraf
 
 #include <time.h>
 
+#define CLIENT_IP "" // 
 #define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
-//#define SERVER_IP "" // IP von strongrom.norgoe.de
+
+//#define CLIENT_IP ""
+//#define SERVER_IP "127.0.0.1"
+
+//#define CLIENT_IP "192.168.220.235"
+//#define SERVER_IP "192.168.220.236"
 
 //#define CLIENT_IP "192.168.2.227" // eth0
 //#define CLIENT_IP "192.168.2.205" // eth1
-#define CLIENT_IP "" // 
+//#define CLIENT_IP "" // 
 
-
-//#define SERVER_IP "192.168.220.236"
-//#define CLIENT_IP "192.168.220.235"
 
  
 /*
@@ -103,13 +106,13 @@ struct paket_header {
     int recv_data_rate; // Bytes per Sek
 
     int recv_timeout_wait;
-    
+
     int last_recv_train_id;
     int last_recv_train_send_countid;
     int last_recv_paket_id;
 
     struct timespec recv_time;
-    struct timespec send_time;     
+    struct timespec send_time;
 };
 
 struct paket {
