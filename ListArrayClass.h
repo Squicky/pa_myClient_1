@@ -10,6 +10,7 @@
 
 
 #include "ServerClientInfo.h"
+#include <stdio.h>
 
 class ListArrayClass {
 public:
@@ -28,6 +29,8 @@ public:
     struct paket_header *last_paket_header;
     
     void save_to_file_and_clear();
+    void save_to_file_and_clear2();
+    void save_to_file_and_clear3(int _File_Deskriptor, FILE *_file_csv);
     void clear();
     
     struct paket_header *give_paket_header(int index);
@@ -35,6 +38,8 @@ public:
 
     int File_Deskriptor;
     int File_Deskriptor_csv;
+    FILE *file;
+    FILE *file_csv;
     
     bool log_file_ok;
 private:
@@ -44,6 +49,8 @@ private:
     int mess_paket_size;
     int paket_header_size;
     char filename[256];
+    
+    
 };
 
 #endif	/* LISTARRAYCLASS_H */

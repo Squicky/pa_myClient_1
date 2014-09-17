@@ -140,6 +140,9 @@ void ClientBenchmarkClass::rec_threadRun() {
     ListArrayClass *lac_send1 = new ListArrayClass(mess_paket_size, puffer);
     ListArrayClass *lac_send2 = new ListArrayClass(mess_paket_size);
     lac_send2->File_Deskriptor = lac_send1->File_Deskriptor;
+    lac_send2->File_Deskriptor_csv = lac_send1->File_Deskriptor_csv;
+    lac_send2->file = lac_send1->file;
+    lac_send2->file_csv = lac_send1->file_csv;
     ListArrayClass *lac_send3 = lac_send1;
 
     /*    
