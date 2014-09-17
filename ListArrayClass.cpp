@@ -42,6 +42,8 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     count_arrays = 1;
     count_paket_headers = 0;
 
+    File_Deskriptor = 0;
+
     strncpy(filename, _filename, strlen(_filename));
 
     nextListArrayClass = NULL;
@@ -56,6 +58,16 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
 
     log_file_ok = false;
+
+    char filenamecsv[1024];
+    filenamecsv[0] = 0;
+    strncat(filenamecsv, filename, 1024);
+    strncat(filenamecsv, "_.csv", 1024);
+    if ((File_Deskriptor_csv = open(filenamecsv, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG, S_IRWXO)) == -1) {
+        printf("ERROR:\n  Fehler beim Öffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+    }
 
     // O_WRONLY nur zum Schreiben öffnen
     // O_RDWR zum Lesen und Schreiben öffnen
@@ -81,9 +93,14 @@ SchreibFehler:
 
 SchreibFehlerUeberspringen:
 
-        FILE *f = fdopen(File_Deskriptor, "w");
-        fprintf(f, "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_time;send_time;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id\n\n\n");
 
+        FILE *f_csv = fdopen(File_Deskriptor_csv, "w");
+        fprintf(f_csv, "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;recv_time;send_time\n\n\n");
+        fflush(f_csv);
+
+
+        FILE *f = fdopen(File_Deskriptor, "w");
+        fprintf(f, "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;recv_time;send_time\n\n\n");
         fflush(f);
         /*        
                 char c = 10;
@@ -189,25 +206,43 @@ void ListArrayClass::save_to_file_and_clear() {
 
     ListArrayClass *lac;
 
-    int bytezahl;
+    FILE *f = fdopen(File_Deskriptor, "w");
+
+    FILE *f_csv = fdopen(File_Deskriptor_csv, "w");
+
     for (lac = this; lac != NULL; lac = lac->nextListArrayClass) {
         if (lac->array_paket_header != NULL) {
 
-            FILE *f = fdopen(File_Deskriptor, "w");
-
-            int i;
-            for (i = 0; i < lac->count_paket_headers; i++) {
-                fprintf(f, "%d;%d;%d;%d;%ld.%ld;%ld.%ld;%d;%d;%d;%d;%d\n", lac->array_paket_header[i].train_id, lac->array_paket_header[i].train_send_countid, lac->array_paket_header[i].paket_id, lac->array_paket_header[i].count_pakets_in_train, lac->array_paket_header[i].recv_time.tv_sec, lac->array_paket_header[i].recv_time.tv_nsec, lac->array_paket_header[i].send_time.tv_sec, lac->array_paket_header[i].send_time.tv_nsec, lac->array_paket_header[i].recv_data_rate, lac->array_paket_header[i].recv_timeout_wait, lac->array_paket_header[i].last_recv_train_id, lac->array_paket_header[i].last_recv_train_send_countid, lac->array_paket_header[i].last_recv_paket_id);
-                fflush(f);
+            for (int i = 0; i < lac->count_paket_headers; i++) {
+                
+                fprintf(f_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%ld.%.9ld;%ld.%.9ld;;;\n",
+                        lac->array_paket_header[i].train_id,
+                        lac->array_paket_header[i].train_send_countid,
+                        lac->array_paket_header[i].paket_id,
+                        lac->array_paket_header[i].count_pakets_in_train,
+                        lac->array_paket_header[i].recv_data_rate,
+                        lac->array_paket_header[i].recv_timeout_wait,
+                        lac->array_paket_header[i].last_recv_train_id,
+                        lac->array_paket_header[i].last_recv_train_send_countid,
+                        lac->array_paket_header[i].last_recv_paket_id,
+                        lac->array_paket_header[i].recv_time.tv_sec,
+                        lac->array_paket_header[i].recv_time.tv_nsec,
+                        lac->array_paket_header[i].send_time.tv_sec,
+                        lac->array_paket_header[i].send_time.tv_nsec
+                        );
+                
+                //fflush(f_csv);
+                
             }
 
-            /*
+
+            int bytezahl = lac->count_paket_headers * lac->paket_header_size;
             if (bytezahl != write(File_Deskriptor, lac->array_paket_header, bytezahl)) {
                 printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", lac->filename, strerror(errno));
                 fflush(stdout);
                 exit(EXIT_FAILURE);
             }
-             * */
+
         }
     }
 

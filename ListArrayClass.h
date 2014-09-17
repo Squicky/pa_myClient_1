@@ -34,6 +34,8 @@ public:
     struct paket_header *give_paket_header(int train_id, int train_send_countid, int paket_id);
 
     int File_Deskriptor;
+    int File_Deskriptor_csv;
+    
     bool log_file_ok;
 private:
     
