@@ -140,8 +140,8 @@ void ClientBenchmarkClass::rec_threadRun() {
     ListArrayClass *lac_send1 = new ListArrayClass(mess_paket_size, puffer);
     ListArrayClass *lac_send2 = new ListArrayClass(mess_paket_size);
     lac_send2->File_Deskriptor = lac_send1->File_Deskriptor;
-    lac_send2->File_Deskriptor_csv = lac_send1->File_Deskriptor_csv;
-    lac_send2->file = lac_send1->file;
+//    lac_send2->File_Deskriptor_csv = lac_send1->File_Deskriptor_csv;
+//    lac_send2->file = lac_send1->file;
     lac_send2->file_csv = lac_send1->file_csv;
     ListArrayClass *lac_send3 = lac_send1;
 
@@ -380,9 +380,12 @@ void ClientBenchmarkClass::rec_threadRun() {
                 my_bytes_per_sek = mess_paket_size * 6;
             }
 
-            if (1000000 < my_bytes_per_sek) {
-                my_bytes_per_sek = 1000000;
+                        /*
+             * Datenrate bremsen :-)
+            if (100000 < my_bytes_per_sek) {
+                my_bytes_per_sek = 100000;
             }
+             * */
 
             arbeits_paket_header_send->recv_data_rate = my_bytes_per_sek;
 
@@ -480,7 +483,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                                 sleep_time_microsec++;
                                 sleep_time_microsec--;
                             } else {
-                                //                                usleep(sleep_time_microsec);
+                                usleep(sleep_time_microsec);
                             }
 
                             send_sleep_total = send_sleep_total + sleep_time_microsec;

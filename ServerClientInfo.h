@@ -62,18 +62,17 @@ sudo iptraf
 
 #include <time.h>
 
-//#define CLIENT_IP "" // 
-//#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
+#define CLIENT_IP "" 
+#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
+//#define SERVER_IP "127.0.0.1"
 
-#define CLIENT_IP ""
-#define SERVER_IP "127.0.0.1"
 
 //#define CLIENT_IP "192.168.220.235"
 //#define SERVER_IP "192.168.220.236"
 
 //#define CLIENT_IP "192.168.2.227" // eth0
 //#define CLIENT_IP "192.168.2.205" // eth1
-//#define CLIENT_IP "" // 
+
 
 
  

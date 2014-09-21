@@ -43,6 +43,7 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     count_paket_headers = 0;
 
     File_Deskriptor = 0;
+    file_csv = NULL;
 
     strncpy(filename, _filename, strlen(_filename));
 
@@ -59,24 +60,20 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
 
     log_file_ok = false;
 
-    char filenamecsv[1024];
-    filenamecsv[0] = 0;
-    strncat(filenamecsv, filename, 1024);
-    strncat(filenamecsv, "_.csv", 1024);
-    //    if ((File_Deskriptor_csv = open(filenamecsv, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG, S_IRWXO)) == -1) {
-    //        printf("ERROR:\n  Fehler beim �ffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
-    //        fflush(stdout);
-    //        exit(EXIT_FAILURE);
-    //    }
+    char filename_csv[1024];
+    filename_csv[0] = 0;
+    strncat(filename_csv, filename, 1024);
+    strncat(filename_csv, "_.csv", 1024);
 
-    // O_WRONLY nur zum Schreiben �ffnen
-    // O_RDWR zum Lesen und Schreiben �ffnen
-    // O_RDONLY nur zum Lesen �ffnen
+    // O_WRONLY nur zum Schreiben oeffnen
+    // O_RDWR zum Lesen und Schreiben oeffnen
+    // O_RDONLY nur zum Lesen oeffnen
     // O_CREAT Falls die Datei nicht existiert, wird sie neu angelegt. Falls die Datei existiert, ist O_CREAT ohne Wirkung.
-    // O_APPEND Datei �ffnen zum Schreiben am Ende
-    // O_EXCL O_EXCL kombiniert mit O_CREAT bedeutet, dass die Datei nicht ge�ffnet werden kann, wenn sie bereits existiert und open() den Wert 1 zur�ckliefert (1 == Fehler).
-    // O_TRUNC Eine Datei, die zum Schreiben ge�ffnet wird, wird geleert. Darauffolgendes Schreiben bewirkt erneutes Beschreiben der Datei von Anfang an. Die Attribute der Datei bleiben erhalten.
-    if ((File_Deskriptor = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG, S_IRWXO)) == -1) {
+    // O_APPEND Datei oeffnen zum Schreiben am Ende
+    // O_EXCL O_EXCL kombiniert mit O_CREAT bedeutet, dass die Datei nicht geoeffnet werden kann, wenn sie bereits existiert und open() den Wert 1 zurueckliefert (1 == Fehler).
+    // O_TRUNC Eine Datei, die zum Schreiben geoeffnet wird, wird geleert. Darauffolgendes Schreiben bewirkt erneutes Beschreiben der Datei von Anfang an. Die Attribute der Datei bleiben erhalten.
+    File_Deskriptor = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG, S_IRWXO);
+    if (File_Deskriptor == -1) {
         printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
@@ -86,17 +83,15 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     char firstlines[] = "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;recv_time;send_time\n\n\n";
     int firstlines_len = strlen(firstlines);
 
-    file_csv = fopen(filenamecsv, "w");
-
+    /*
+    file_csv = fopen(filename_csv, "w");
     if (file_csv == NULL) {
-        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filenamecsv, strerror(errno));
+        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename_csv, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
     printf("Datei \"%s\" erstellt & geoeffnet \n ", filename);
-
-    fprintf(file_csv, "%s", firstlines);
-    fflush(file_csv);
+     * */
 
     if (write(File_Deskriptor, firstlines, firstlines_len) != firstlines_len) {
         printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
@@ -104,87 +99,30 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
         exit(EXIT_FAILURE);
     }
 
+    if (file_csv != NULL) {
+        if (fprintf(file_csv, "%s", firstlines) != firstlines_len) {
+            printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename_csv, strerror(errno));
+            fflush(stdout);
+            exit(EXIT_FAILURE);
+        }
+        fflush(file_csv);
+    }
 
-    //        file = fdopen(File_Deskriptor, "w");
-    //        fprintf(file, "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;recv_time;send_time\n\n\n");
-    //        fflush(file);
-
-    //        file = fdopen(File_Deskriptor, "w");
-    //        file_csv = fdopen(File_Deskriptor_csv, "w");
-
-    /*
-      
-     goto SchreibFehlerUeberspringen;
-
-SchreibFehler:
-    printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
-    fflush(stdout);
-    exit(EXIT_FAILURE);
-
-SchreibFehlerUeberspringen:
-
-    char c = 10;
-    c = 0;
-
-    char puffer0[] = "train_id_int";
-    char *puffer = puffer0;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer1[] = "train_send_countid_int";
-    puffer = puffer1;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer2[] = "paket_id_int";
-    puffer = puffer2;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer3[] = "count_pakets_in_train_int";
-    puffer = puffer3;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer4[] = "recv_time_timespec";
-    puffer = puffer4;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer5[] = "send_time_timespec";
-    puffer = puffer5;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer6[] = "recv_data_rate_int";
-    puffer = puffer6;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer7[] = "last_recv_train_id_int";
-    puffer = puffer7;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer8[] = "last_recv_train_send_countid_int";
-    puffer = puffer8;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    char puffer9[] = "last_recv_paket_id_int";
-    puffer = puffer9;
-    if (write(File_Deskriptor, puffer, strlen(puffer)) != strlen(puffer)) goto SchreibFehler;
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-
-    c = '\n';
-    if (write(File_Deskriptor, &c, 1) != 1) goto SchreibFehler;
-     */
 
     log_file_ok = true;
 
 }
 
 ListArrayClass::~ListArrayClass() {
+    if (File_Deskriptor != 0) {
+        close(File_Deskriptor);
+    }
+
+    if (file_csv != NULL) {
+        fclose(file_csv);
+    }
+
+
     free(array_paket_header);
     array_paket_header = NULL;
     if (nextListArrayClass != NULL) {
@@ -219,129 +157,36 @@ paket_header *ListArrayClass::copy_paket_header(struct paket_header *ph) {
 
 }
 
-void ListArrayClass::save_to_file_and_clear2() {
+int timespec2str(char *buf, uint len, struct timespec *ts) {
+    int ret;
+    struct tm t;
 
-    if (array_paket_header != NULL) {
-        int min;
-        if (count_paket_header_in_one_array < count_paket_headers) {
-            min = count_paket_header_in_one_array;
-        } else {
-            min = count_paket_headers;
-        }
-
-        printf("\r  1                  ");
-        fflush(stdout);
-
-        for (int i = 0; i < min; i++) {
-
-            if (i < 5 || i % 100 == 0) {
-                printf("\r  11 %d / %d / %d             ", i, min, count_paket_headers);
-                fflush(stdout);
-            }
-
-            fprintf(file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%ld.%.9ld;%ld.%.9ld\n",
-                    array_paket_header[i].train_id,
-                    array_paket_header[i].train_send_countid,
-                    array_paket_header[i].paket_id,
-                    array_paket_header[i].count_pakets_in_train,
-                    array_paket_header[i].recv_data_rate,
-                    array_paket_header[i].recv_timeout_wait,
-                    array_paket_header[i].last_recv_train_id,
-                    array_paket_header[i].last_recv_train_send_countid,
-                    array_paket_header[i].last_recv_paket_id,
-                    array_paket_header[i].recv_time.tv_sec,
-                    array_paket_header[i].recv_time.tv_nsec,
-                    array_paket_header[i].send_time.tv_sec,
-                    array_paket_header[i].send_time.tv_nsec
-                    );
-
-            //fflush(file_csv);
-
-        }
-
-        printf("\r  2             ");
-        fflush(stdout);
-
-        int bytezahl = min * paket_header_size;
-        if (bytezahl != write(File_Deskriptor, array_paket_header, bytezahl)) {
-            printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
-            fflush(stdout);
-            exit(EXIT_FAILURE);
-        }
-
-        printf("\r  3             ");
-        fflush(stdout);
+    tzset();
+    if (localtime_r(&(ts->tv_sec), &t) == NULL) {
+        return 1;
     }
 
-    if (this->nextListArrayClass != NULL) {
-        nextListArrayClass->save_to_file_and_clear3(File_Deskriptor, file_csv);
+    ret = strftime(buf, len, "%F %T", &t);
+    if (ret == 0) {
+        return 2;
+    }
+    len = len - ret;
+
+    ret = snprintf(&buf[ret], len, ".%09ld", ts->tv_nsec);
+    if (ret >= len) {
+        return 3;
     }
 
-}
-
-void ListArrayClass::save_to_file_and_clear3(int _File_Deskriptor, FILE *_file_csv) {
-    if (array_paket_header != NULL) {
-        int min;
-        if (count_paket_header_in_one_array < count_paket_headers) {
-            min = count_paket_header_in_one_array;
-        } else {
-            min = count_paket_headers;
-        }
-
-        printf("\r  1-                ");
-        fflush(stdout);
-
-
-        for (int i = 0; i < min; i++) {
-
-            fprintf(_file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%ld.%.9ld;%ld.%.9ld\n",
-                    array_paket_header[i].train_id,
-                    array_paket_header[i].train_send_countid,
-                    array_paket_header[i].paket_id,
-                    array_paket_header[i].count_pakets_in_train,
-                    array_paket_header[i].recv_data_rate,
-                    array_paket_header[i].recv_timeout_wait,
-                    array_paket_header[i].last_recv_train_id,
-                    array_paket_header[i].last_recv_train_send_countid,
-                    array_paket_header[i].last_recv_paket_id,
-                    array_paket_header[i].recv_time.tv_sec,
-                    array_paket_header[i].recv_time.tv_nsec,
-                    array_paket_header[i].send_time.tv_sec,
-                    array_paket_header[i].send_time.tv_nsec
-                    );
-
-            //fflush(file_csv);
-
-        }
-
-        printf("\r  2-                ");
-        fflush(stdout);
-
-        int bytezahl = min * paket_header_size;
-        if (bytezahl != write(_File_Deskriptor, array_paket_header, bytezahl)) {
-            printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
-            fflush(stdout);
-            exit(EXIT_FAILURE);
-        }
-
-        printf("\r  3-              ");
-        fflush(stdout);
-    }
-
-    if (this->nextListArrayClass != NULL) {
-        nextListArrayClass->save_to_file_and_clear3(File_Deskriptor, file_csv);
-    }
+    return 0;
 }
 
 void ListArrayClass::save_to_file_and_clear() {
-
-
-//    save_to_file_and_clear2();
-
-//    return;
-
-
     ListArrayClass *lac;
+
+    //const uint timestr_size = strlen("2014-12-31 12:59:59.123456789") + 1;
+    const uint timestr_size = 30;
+    char timestr1[timestr_size];
+    char timestr2[timestr_size];
 
     for (lac = this; lac != NULL; lac = lac->nextListArrayClass) {
         if (lac->array_paket_header != NULL) {
@@ -353,38 +198,30 @@ void ListArrayClass::save_to_file_and_clear() {
                 min = lac->count_paket_headers;
             }
 
-//            printf("\r   1            ");
-//            fflush(stdout);
+            if (file_csv != NULL) {
+                for (int i = 0; i < min; i++) {
 
+                    timespec2str(timestr1, timestr_size, &lac->array_paket_header[i].recv_time);
+                    timespec2str(timestr2, timestr_size, &lac->array_paket_header[i].send_time);
 
-            for (int i = 0; i < min; i++) {
+                    fprintf(file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%s;%s\n",
+                            lac->array_paket_header[i].train_id,
+                            lac->array_paket_header[i].train_send_countid,
+                            lac->array_paket_header[i].paket_id,
+                            lac->array_paket_header[i].count_pakets_in_train,
+                            lac->array_paket_header[i].recv_data_rate,
+                            lac->array_paket_header[i].recv_timeout_wait,
+                            lac->array_paket_header[i].last_recv_train_id,
+                            lac->array_paket_header[i].last_recv_train_send_countid,
+                            lac->array_paket_header[i].last_recv_paket_id,
+                            timestr1,
+                            timestr2
+                            );
 
-//                printf("\r 1 %d / %d #              ", i, min);
-//                fflush(stdout);
-
-                fprintf(file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%ld.%.9ld;%ld.%.9ld\n",
-                        lac->array_paket_header[i].train_id,
-                        lac->array_paket_header[i].train_send_countid,
-                        lac->array_paket_header[i].paket_id,
-                        lac->array_paket_header[i].count_pakets_in_train,
-                        lac->array_paket_header[i].recv_data_rate,
-                        lac->array_paket_header[i].recv_timeout_wait,
-                        lac->array_paket_header[i].last_recv_train_id,
-                        lac->array_paket_header[i].last_recv_train_send_countid,
-                        lac->array_paket_header[i].last_recv_paket_id,
-                        lac->array_paket_header[i].recv_time.tv_sec,
-                        lac->array_paket_header[i].recv_time.tv_nsec,
-                        lac->array_paket_header[i].send_time.tv_sec,
-                        lac->array_paket_header[i].send_time.tv_nsec
-                        );
-
-                //fflush(file_csv);
-
+                    fflush(file_csv);
+                }
             }
 
-
-//            printf("\r   1    2       ");
-//            fflush(stdout);
 
             int bytezahl = min * lac->paket_header_size;
             if (bytezahl != write(File_Deskriptor, lac->array_paket_header, bytezahl)) {
@@ -392,9 +229,6 @@ void ListArrayClass::save_to_file_and_clear() {
                 fflush(stdout);
                 exit(EXIT_FAILURE);
             }
-
-//            printf("\r   1    2     3 ");
-//            fflush(stdout);
 
         }
     }
