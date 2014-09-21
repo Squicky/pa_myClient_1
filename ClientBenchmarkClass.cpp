@@ -478,7 +478,6 @@ void ClientBenchmarkClass::rec_threadRun() {
                             send_sleep_total = send_sleep_total + sleep_time_microsec;
                             send_sleep_count++;
                         }
-
                     }
                 }
 
