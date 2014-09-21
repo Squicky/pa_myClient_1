@@ -55,7 +55,7 @@ ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_po
         meineAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     }
 
-    printf("UDP Mess-Socket (UMS): IP: %s   UDP Port: %d \n", inet_ntoa(meineAddr.sin_addr), meineAddr.sin_port);
+    printf("UDP Mess-Socket (UMS): IP: %s   UDP Port: %d \n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
 
     // serverAddr konfigurieren: IPv4, Port, Empfaenger IP
     serverAddr.sin_family = AF_INET;
@@ -140,8 +140,8 @@ void ClientBenchmarkClass::rec_threadRun() {
     ListArrayClass *lac_send1 = new ListArrayClass(mess_paket_size, puffer);
     ListArrayClass *lac_send2 = new ListArrayClass(mess_paket_size);
     lac_send2->File_Deskriptor = lac_send1->File_Deskriptor;
-//    lac_send2->File_Deskriptor_csv = lac_send1->File_Deskriptor_csv;
-//    lac_send2->file = lac_send1->file;
+    //    lac_send2->File_Deskriptor_csv = lac_send1->File_Deskriptor_csv;
+    //    lac_send2->file = lac_send1->file;
     lac_send2->file_csv = lac_send1->file_csv;
     ListArrayClass *lac_send3 = lac_send1;
 
@@ -184,26 +184,6 @@ void ClientBenchmarkClass::rec_threadRun() {
     timeout_time.tv_sec = 0; // Anzahl Sekunden
     timeout_time.tv_usec = 300000; // Anzahl Mikrosekunden : 1 Sek. = 1.000.000 Mikrosekunden
 
-    /*
-    //    int abc;
-    //    timespec a,b;
-    //    clock_gettime(CLOCK_REALTIME, &a);
-    //    for (abc = 1; abc < 25000000; abc++) {
-    //        timeout_time.tv_usec = abc % 1000000;
-    if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
-        //            printf(" %d \n", abc);
-        printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
-        fflush(stdout);
-        exit(EXIT_FAILURE);
-    }
-    //    }
-    //    clock_gettime(CLOCK_REALTIME, &b);
-    printf(" time: %f \n", timespec_diff_double(&a, &b));
-     */
-
-
-    //    struct paket_header meinPaket;
-    //    arbeits_paket_header_send->token = -1;
     arbeits_paket_header_send->train_id = 0;
     arbeits_paket_header_send->paket_id = 0;
     arbeits_paket_header_send->train_send_countid = 0;
@@ -220,6 +200,9 @@ void ClientBenchmarkClass::rec_threadRun() {
     if (arbeits_paket_header_send->count_pakets_in_train < 2) {
         arbeits_paket_header_send->count_pakets_in_train = 2;
     }
+
+    printf("START Messung: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
+    printf("<----> Server (%s:%d)", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
 
     long countBytes;
     int i;
@@ -247,6 +230,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     int set_timeout = 0;
 
+    uint count_recv_Timeout = 0;
+    
     /* Daten in While Schleife empfangen */
     printf("UDP Mess-Socket (UMS) (%s:%d) wartet auf Daten ... \n", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     while (stop == false) {
@@ -256,6 +241,9 @@ void ClientBenchmarkClass::rec_threadRun() {
         clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
 
         if (set_timeout == 0) {
+            printf("ERSTER Empfang: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
+            printf("<----> Server (%s:%d)", inet_ntoa(serverAddr.sin_addr), ntohs(serverAddr.sin_port));
+
             set_timeout = 1;
             if (setsockopt(server_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                 printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
@@ -265,7 +253,7 @@ void ClientBenchmarkClass::rec_threadRun() {
         }
 
         if (countBytes == -1) {
-            printf("Timeout recvfrom:\n  %ld Bytes empfangen (%s)\n", countBytes, strerror(errno));
+            printf("Timeout recvfrom:\n  %ld Bytes empfangen (%u)\n", countBytes, count_recv_Timeout);
         } else if (countBytes != mess_paket_size - 8 - 20 - 26) {
             printf("ERROR:\n  %ld Bytes empfangen (%s)\n", countBytes, strerror(errno));
             fflush(stdout);
@@ -299,7 +287,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                 if (my_recv_train_send_countid < arbeits_paket_header_recv->train_send_countid) {
                     my_recv_train_send_countid = arbeits_paket_header_recv->train_send_countid;
 
-                    printf("RECV alt train # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->count_pakets_in_train);
+                    printf("RECV ALT train # train_id %d  # countid: %d # count pakete: %d \n", arbeits_paket_header_recv->train_id, arbeits_paket_header_recv->train_send_countid, arbeits_paket_header_recv->count_pakets_in_train);
 
                 }
             } else {
@@ -380,12 +368,13 @@ void ClientBenchmarkClass::rec_threadRun() {
                 my_bytes_per_sek = mess_paket_size * 6;
             }
 
-                        /*
-             * Datenrate bremsen :-)
+
+/*
+            // Datenrate bremsen :-)
             if (100000 < my_bytes_per_sek) {
                 my_bytes_per_sek = 100000;
             }
-             * */
+*/
 
             arbeits_paket_header_send->recv_data_rate = my_bytes_per_sek;
 

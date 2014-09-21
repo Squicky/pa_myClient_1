@@ -1,10 +1,3 @@
-/* 
- * File:   ServerClientInfo.h
- * Author: user
- *
- * Created on 19. August 2014, 10:40
- */
-
 
 /*
  * eth0: 192.168.120.233
@@ -63,8 +56,8 @@ sudo iptraf
 #include <time.h>
 
 #define CLIENT_IP "" 
-#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
-//#define SERVER_IP "127.0.0.1"
+//#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
+#define SERVER_IP "127.0.0.1"
 
 
 //#define CLIENT_IP "192.168.220.235"
