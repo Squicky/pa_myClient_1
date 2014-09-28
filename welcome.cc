@@ -44,6 +44,8 @@ int main(int argc, char**argv) {
     int size_tstv_sec = sizeof(ts.tv_sec);
     int size_tstv_nsec = sizeof(ts.tv_nsec);
     */
+   
+    
     
     ClientClass *c = new ClientClass();
 

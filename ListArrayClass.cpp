@@ -33,6 +33,9 @@ ListArrayClass::ListArrayClass(int _mess_paket_size) {
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
 
+    array_paket_header_start = (unsigned int) array_paket_header;
+    array_paket_header_ende = (unsigned int) array_paket_header + array_paket_header_size - 1;
+
     log_file_ok = false;
 }
 
@@ -58,6 +61,9 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
 
+    array_paket_header_start = (unsigned int) array_paket_header;
+    array_paket_header_ende = (unsigned int) array_paket_header + array_paket_header_size - 1;
+
     log_file_ok = false;
 
     char filename_csv[1024];
@@ -74,40 +80,39 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     // O_TRUNC Eine Datei, die zum Schreiben geoeffnet wird, wird geleert. Darauffolgendes Schreiben bewirkt erneutes Beschreiben der Datei von Anfang an. Die Attribute der Datei bleiben erhalten.
     File_Deskriptor = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG, S_IRWXO);
     if (File_Deskriptor == -1) {
-        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
+        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n", filename, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
-    printf("Datei \"%s\" erstellt & geoeffnet \n ", filename);
+    printf("Datei \"%s\" erstellt & geoeffnet \n", filename);
 
-    char firstlines[] = "train_id;train_send_countid;paket_id;count_pakets_in_train;recv_data_rate;recv_timeout_wait;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;recv_time;send_time\n\n\n";
+    char firstlines[] = "train_id;retransfer_train_id;paket_id;count_pakets_in_train;recv_data_rate;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;last_paket_recv_bytes;timeout_time_tv_sec;timeout_time_tv_usec;recv_time;send_time\n\n\n";
     int firstlines_len = strlen(firstlines);
 
     /*
     file_csv = fopen(filename_csv, "w");
     if (file_csv == NULL) {
-        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n ", filename_csv, strerror(errno));
+        printf("ERROR:\n  Fehler beim oeffnen / Erstellen der Datei \"%s\" \n(%s)\n", filename_csv, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
-    printf("Datei \"%s\" erstellt & geoeffnet \n ", filename);
+    printf("Datei \"%s\" erstellt & geoeffnet \n", filename);
      * */
 
     if (write(File_Deskriptor, firstlines, firstlines_len) != firstlines_len) {
-        printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
+        printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename, strerror(errno));
         fflush(stdout);
         exit(EXIT_FAILURE);
     }
 
     if (file_csv != NULL) {
         if (fprintf(file_csv, "%s", firstlines) != firstlines_len) {
-            printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename_csv, strerror(errno));
+            printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_csv, strerror(errno));
             fflush(stdout);
             exit(EXIT_FAILURE);
         }
         fflush(file_csv);
     }
-
 
     log_file_ok = true;
 
@@ -121,7 +126,6 @@ ListArrayClass::~ListArrayClass() {
     if (file_csv != NULL) {
         fclose(file_csv);
     }
-
 
     free(array_paket_header);
     array_paket_header = NULL;
@@ -137,11 +141,41 @@ paket_header *ListArrayClass::copy_paket_header(struct paket_header *ph) {
         if (0 == count_paket_headers) {
             first_paket_header = &array_paket_header[count_paket_headers];
             last_paket_header = first_paket_header;
+
+            unsigned int pos = (unsigned int) last_paket_header;
+            unsigned int last_start_pos = array_paket_header_ende - (paket_header_size - 1);
+            if (array_paket_header_start <= pos && pos <= last_start_pos) {
+            } else {
+                printf("FEHLER!!!!\n");
+                unsigned int __a = (unsigned int) array_paket_header;
+                unsigned int __b = (unsigned int) &array_paket_header[0];
+                unsigned int __c = (unsigned int) &array_paket_header[1];
+                unsigned int __d = (unsigned int) &array_paket_header[2];
+                unsigned int __e = (unsigned int) &array_paket_header[count_paket_headers];
+                unsigned int __f = __a + (count_paket_headers * paket_header_size);
+                printf("FEHLER!!!!\n");
+            }
+
             memcpy(first_paket_header, ph, paket_header_size);
             count_paket_headers++;
             return first_paket_header;
         } else {
             last_paket_header = &array_paket_header[count_paket_headers];
+
+            unsigned int pos = (unsigned int) last_paket_header;
+            unsigned int last_start_pos = array_paket_header_ende - (paket_header_size - 1);
+            if (array_paket_header_start <= pos && pos <= last_start_pos) {
+            } else {
+                printf("FEHLER!!!!\n");
+                unsigned int __a = (unsigned int) array_paket_header;
+                unsigned int __b = (unsigned int) &array_paket_header[0];
+                unsigned int __c = (unsigned int) &array_paket_header[1];
+                unsigned int __d = (unsigned int) &array_paket_header[2];
+                unsigned int __e = (unsigned int) &array_paket_header[count_paket_headers];
+                unsigned int __f = __a + (count_paket_headers * paket_header_size);
+                printf("FEHLER!!!!\n");
+            }
+
             memcpy(last_paket_header, ph, paket_header_size);
             count_paket_headers++;
             return last_paket_header;
@@ -204,16 +238,18 @@ void ListArrayClass::save_to_file_and_clear() {
                     timespec2str(timestr1, timestr_size, &lac->array_paket_header[i].recv_time);
                     timespec2str(timestr2, timestr_size, &lac->array_paket_header[i].send_time);
 
-                    fprintf(file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%s;%s\n",
+                    fprintf(file_csv, "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%s;%s\n",
                             lac->array_paket_header[i].train_id,
-                            lac->array_paket_header[i].train_send_countid,
+                            lac->array_paket_header[i].retransfer_train_id,
                             lac->array_paket_header[i].paket_id,
-                            lac->array_paket_header[i].count_pakets_in_train,
+                            lac->array_paket_header[i].retransfer_train_id,
                             lac->array_paket_header[i].recv_data_rate,
-                            lac->array_paket_header[i].recv_timeout_wait,
                             lac->array_paket_header[i].last_recv_train_id,
                             lac->array_paket_header[i].last_recv_train_send_countid,
                             lac->array_paket_header[i].last_recv_paket_id,
+                            lac->array_paket_header[i].last_paket_recv_bytes,
+                            lac->array_paket_header[i].timeout_time_tv_sec,
+                            lac->array_paket_header[i].timeout_time_tv_usec,
                             timestr1,
                             timestr2
                             );
@@ -222,10 +258,9 @@ void ListArrayClass::save_to_file_and_clear() {
                 }
             }
 
-
             int bytezahl = min * lac->paket_header_size;
             if (bytezahl != write(File_Deskriptor, lac->array_paket_header, bytezahl)) {
-                printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n ", filename, strerror(errno));
+                printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename, strerror(errno));
                 fflush(stdout);
                 exit(EXIT_FAILURE);
             }
@@ -278,7 +313,7 @@ paket_header *ListArrayClass::give_paket_header(int train_id, int train_send_cou
 
     for (i = 0; i < count_paket_header_in_this_array; i++) {
         if (array_paket_header[i].train_id == train_id &&
-                array_paket_header[i].train_send_countid == train_send_countid &&
+                array_paket_header[i].retransfer_train_id == train_send_countid &&
                 array_paket_header[i].paket_id == paket_id) {
 
             return &array_paket_header[i];
@@ -291,5 +326,4 @@ paket_header *ListArrayClass::give_paket_header(int train_id, int train_send_cou
 
     return NULL;
 }
-
 

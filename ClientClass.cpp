@@ -27,11 +27,13 @@ ClientClass::ClientClass() {
     struct sockaddr_in meineAddr;
     int server_socket;
 
-
-    if (sizeof (paket_header) < PAKETSIZE && PAKETSIZE < (MAX_PAKETSIZE - sizeof (paket_header))) {
+    // Ethernet DATEN MTU: 1500  |  IP Header: 20 Bytes  |  UDP Header: 8 Bytes
+    int minPAKETSIZE = (HEADER_SIZES + sizeof (paket_header));
+    int maxPAKETSIZE = (1500 + 20 + 8);
+    if ( minPAKETSIZE < PAKETSIZE && PAKETSIZE < maxPAKETSIZE) {
 
     } else {
-        printf("ERROR:\n  paket_size muss zwischen %d und %d sein \n", sizeof (paket_header), MAX_PAKETSIZE - sizeof (paket_header));
+        printf("ERROR:\n  PAKETSIZE muss zwischen %d und %d sein \n", minPAKETSIZE, maxPAKETSIZE);
         fflush(stdout);
         exit(EXIT_FAILURE);
     }

@@ -15,12 +15,6 @@
 #include "ClientBenchmarkClass.h"
 
 #define LOCAL_Mess_PORT 8000
-#define MAX_PAKETSIZE 65535 // Max. UDP Paketgroeße (2^16) 
-/* 
- * Prüfen: http://openbook.galileocomputing.de/linux_unix_programmierung/Kap11-016.htm#RxxKap11016040003951F04F100
- * Trotzdem hat auch ein UDP-Paket eine maximale Größe, spätestens ab der Hardware (Ethernet: 1500 Bytes).
- */
-
 
 
 class ClientBenchmarkClass {
