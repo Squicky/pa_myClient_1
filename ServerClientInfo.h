@@ -56,8 +56,8 @@ sudo iptraf
 #include <time.h>
 
 #define CLIENT_IP "" 
-#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
-//#define SERVER_IP "127.0.0.1"
+//#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
+#define SERVER_IP "127.0.0.1"
 
 //#define CLIENT_IP "192.168.220.235"
 //#define SERVER_IP "192.168.220.236"
@@ -116,7 +116,7 @@ struct paket_header {
     int timeout_time_tv_sec;
     int timeout_time_tv_usec;
 
-    double rrt;
+    double rtt;
 
     struct timespec recv_time;
     struct timespec send_time;

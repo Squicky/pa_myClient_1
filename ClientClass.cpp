@@ -30,7 +30,7 @@ ClientClass::ClientClass() {
     // Ethernet DATEN MTU: 1500  |  IP Header: 20 Bytes  |  UDP Header: 8 Bytes
     int minPAKETSIZE = (HEADER_SIZES + sizeof (paket_header));
     int maxPAKETSIZE = (1500 + 20 + 8);
-    if ( minPAKETSIZE < PAKETSIZE && PAKETSIZE < maxPAKETSIZE) {
+    if ( minPAKETSIZE <= PAKETSIZE && PAKETSIZE <= maxPAKETSIZE) {
 
     } else {
         printf("ERROR:\n  PAKETSIZE muss zwischen %d und %d sein \n", minPAKETSIZE, maxPAKETSIZE);

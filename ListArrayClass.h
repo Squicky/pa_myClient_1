@@ -48,8 +48,6 @@ private:
     int paket_header_size;
     char filename[256];
     
-    unsigned int array_paket_header_start;
-    unsigned int array_paket_header_ende;
 
 };
 

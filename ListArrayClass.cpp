@@ -32,10 +32,6 @@ ListArrayClass::ListArrayClass(int _mess_paket_size) {
     int array_paket_header_size = count_paket_header_in_one_array * paket_header_size;
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
-
-    array_paket_header_start = (unsigned int) array_paket_header;
-    array_paket_header_ende = (unsigned int) array_paket_header + array_paket_header_size - 1;
-
     log_file_ok = false;
 }
 
@@ -61,9 +57,6 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
 
     array_paket_header = (paket_header*) malloc(array_paket_header_size);
 
-    array_paket_header_start = (unsigned int) array_paket_header;
-    array_paket_header_ende = (unsigned int) array_paket_header + array_paket_header_size - 1;
-
     log_file_ok = false;
 
     char filename_csv[1024];
@@ -86,7 +79,7 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     }
     printf("Datei \"%s\" erstellt & geoeffnet \n", filename);
 
-    char firstlines[] = "train_id;retransfer_train_id;paket_id;count_pakets_in_train;recv_data_rate;last_recv_train_id;last_recv_train_send_countid;last_recv_paket_id;last_recv_paket_bytes;timeout_time_tv_sec;timeout_time_tv_usec;recv_time;send_time;rtt\n\n\n";
+    char firstlines[] = "train_id;retransfer_train_id;paket_id;count_pakets_in_train;recv_data_rate;last_recv_train_id;last_recv_retransfer_train_id;last_recv_paket_id;last_recv_paket_bytes;timeout_time_tv_sec;timeout_time_tv_usec;recv_time;send_time;rtt\n\n\n";
     int firstlines_len = strlen(firstlines);
 
     /*
@@ -142,40 +135,12 @@ paket_header *ListArrayClass::copy_paket_header(struct paket_header *ph) {
             first_paket_header = &array_paket_header[count_paket_headers];
             last_paket_header = first_paket_header;
 
-            unsigned int pos = (unsigned int) last_paket_header;
-            unsigned int last_start_pos = array_paket_header_ende - (paket_header_size - 1);
-            if (array_paket_header_start <= pos && pos <= last_start_pos) {
-            } else {
-                printf("FEHLER!!!!\n");
-                unsigned int __a = (unsigned int) array_paket_header;
-                unsigned int __b = (unsigned int) &array_paket_header[0];
-                unsigned int __c = (unsigned int) &array_paket_header[1];
-                unsigned int __d = (unsigned int) &array_paket_header[2];
-                unsigned int __e = (unsigned int) &array_paket_header[count_paket_headers];
-                unsigned int __f = __a + (count_paket_headers * paket_header_size);
-                printf("FEHLER!!!!\n");
-            }
-
             memcpy(first_paket_header, ph, paket_header_size);
 
             count_paket_headers++;
             return first_paket_header;
         } else {
             last_paket_header = &array_paket_header[count_paket_headers];
-
-            unsigned int pos = (unsigned int) last_paket_header;
-            unsigned int last_start_pos = array_paket_header_ende - (paket_header_size - 1);
-            if (array_paket_header_start <= pos && pos <= last_start_pos) {
-            } else {
-                printf("FEHLER!!!!\n");
-                unsigned int __a = (unsigned int) array_paket_header;
-                unsigned int __b = (unsigned int) &array_paket_header[0];
-                unsigned int __c = (unsigned int) &array_paket_header[1];
-                unsigned int __d = (unsigned int) &array_paket_header[2];
-                unsigned int __e = (unsigned int) &array_paket_header[count_paket_headers];
-                unsigned int __f = __a + (count_paket_headers * paket_header_size);
-                printf("FEHLER!!!!\n");
-            }
 
             memcpy(last_paket_header, ph, paket_header_size);
 
@@ -254,7 +219,7 @@ void ListArrayClass::save_to_file_and_clear() {
                             lac->array_paket_header[i].timeout_time_tv_usec,
                             timestr1,
                             timestr2,
-                            lac->array_paket_header[i].rrt
+                            lac->array_paket_header[i].rtt
                             );
 
                     fflush(file_csv);

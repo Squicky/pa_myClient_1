@@ -195,8 +195,8 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_recv->timeout_time_tv_usec = -1;
     arbeits_paket_header_send->last_recv_paket_bytes = -2;
     arbeits_paket_header_recv->last_recv_paket_bytes = -2;
-    arbeits_paket_header_send->rrt = -2;
-    arbeits_paket_header_recv->rrt = -2;
+    arbeits_paket_header_send->rtt = -2;
+    arbeits_paket_header_recv->rtt = -2;
     arbeits_paket_header_send->recv_data_rate = START_RECV_DATA_RATE / 8;
     arbeits_paket_header_recv->recv_data_rate = START_RECV_DATA_RATE / 8;
 
@@ -219,7 +219,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     double time_diff_send;
     double count_all_bytes_send;
     double ist_train_bytes_per_sek_send;
-    double max_send_faktor = 1.25;
+    double max_send_faktor = 1.175;
     double max_send_faktor_mal_recv_data_rate;
     long send_sleep_total = 0;
     long send_sleep_count = 0;
@@ -250,7 +250,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                 timespec train_sending_time = timespec_diff_timespec(first_paket_train_send_time, &(arbeits_paket_header_send->send_time));
                 if (500000000 < train_sending_time.tv_nsec || 0 < train_sending_time.tv_sec) {
                     if (4 < i) {
-                        //                        arbeits_paket_header_send->count_pakets_in_train = i + 2;
+                        arbeits_paket_header_send->count_pakets_in_train = i + 2;
                     }
                 }
                 if (1 < i) {
@@ -445,7 +445,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             // Datenrate bremsen :-)
             if (bremsen) {
                 if (10000000 < (my_bytes_per_sek * 8)) {
-                    //                    my_bytes_per_sek = 10000000 / 8;
+                    my_bytes_per_sek = 10000000 / 8;
                 }
             }
 
@@ -469,8 +469,9 @@ void ClientBenchmarkClass::rec_threadRun() {
             printf("time_diff: %.4f # ", time_diff_recv);
             double mbits_per_sek_recv = bytes_per_sek_recv * 8;
             mbits_per_sek_recv = mbits_per_sek_recv / 1000000;
-            printf("data_rate: %.4f MBits/Sek        \n", mbits_per_sek_recv);
-            
+            printf("data_rate: %.4f # ", mbits_per_sek_recv);
+            printf("%.4f MBits/Sek   \n", (double) arbeits_paket_header_recv->recv_data_rate * 8 / 1000000);
+
             arbeits_paket_header_send->train_id = my_max_recv_train_id + 1;
 
             if (my_last_send_train_id < arbeits_paket_header_send->train_id) {
@@ -493,7 +494,7 @@ void ClientBenchmarkClass::rec_threadRun() {
             fflush(stdout);
 
 
-            // rrt in ersten recv Packet eintraken
+            // rtt in ersten recv Packet eintraken
             {
                 struct paket_header *x = NULL;
                 if (0 < lac_recv->count_paket_headers) {
@@ -504,9 +505,9 @@ void ClientBenchmarkClass::rec_threadRun() {
                 }
 
                 if (x != NULL) {
-                    arbeits_paket_header_send->rrt = timespec_diff_double(&x->send_time, &lac_recv->first_paket_header->recv_time);
+                    arbeits_paket_header_send->rtt = timespec_diff_double(&x->send_time, &lac_recv->first_paket_header->recv_time);
                 } else {
-                    arbeits_paket_header_send->rrt = -1;
+                    arbeits_paket_header_send->rtt = -1;
                 }
             }
 
