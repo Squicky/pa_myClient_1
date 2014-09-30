@@ -65,11 +65,11 @@ sudo iptraf
 //#define CLIENT_IP "192.168.2.227" // eth0
 //#define CLIENT_IP "192.168.2.205" // eth1
 
- 
+
 /*
-    * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
-    * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
-    */
+ * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
+ * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
+ */
 #define MAX_UMTS_DATA_RATE 5250000
 
 #define START_RECV_DATA_RATE 64000 //64 kBits
@@ -88,8 +88,6 @@ sudo iptraf
  */
 #define HEADER_SIZES 54
 
-
-
 struct init_info_client_to_server {
     int paket_size;
     char zeit_dateiname[16];
@@ -102,20 +100,24 @@ struct init_info_server_to_client {
 
 struct paket_header {
     int train_id;
-    int train_send_countid;
-    int paket_id;
     int retransfer_train_id;
+    int paket_id;
+    
+    int count_pakets_in_train;
+    
     int recv_data_rate; // Bytes per Sek
 
     int last_recv_train_id;
-    int last_recv_train_send_countid;
+    int last_recv_retransfer_train_id;
     int last_recv_paket_id;
+    int last_recv_paket_bytes;
     
-    int last_paket_recv_bytes;
 
     int timeout_time_tv_sec;
     int timeout_time_tv_usec;
-    
+
+    double rrt;
+
     struct timespec recv_time;
     struct timespec send_time;
 };
@@ -125,11 +127,11 @@ struct paket {
     char *puffer;
 };
 
-    /*
-    * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
-    * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
-    */
-    //static int max_umts_data_rate = 5250000; 
+/*
+ * max. UMTS Datenrate: HSPA+ 42 MBits/Sek
+ * 42 MBits/Sek = 42000000 Bits/Sek = 5250000 Bytes/Sek
+ */
+//static int max_umts_data_rate = 5250000; 
 
 #endif	/* SERVERCLIENTINFO_H */
 
