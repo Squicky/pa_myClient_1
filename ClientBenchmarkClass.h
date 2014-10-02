@@ -16,22 +16,24 @@
 
 #define LOCAL_Mess_PORT 8000
 
-
 class ClientBenchmarkClass {
 public:
     ClientBenchmarkClass(char * _server_ip, int _server_rec_port, int _paket_size, char _zeit_dateiname[]);
-/*    
-    ClientBenchmarkClass(const ClientBenchmarkClass& orig);
-    virtual ~ClientBenchmarkClass();
-*/
-    
+    /*    
+        ClientBenchmarkClass(const ClientBenchmarkClass& orig);
+        virtual ~ClientBenchmarkClass();
+     */
+
     pthread_t rec_thread;
 private:
-    struct sockaddr_in serverAddr;
+    struct sockaddr_in otherAddr;
     struct sockaddr_in meineAddr;
-    socklen_t serverAddrSize;
-    int server_mess_socket;
+    socklen_t otherAddrSize;
+    int other_mess_socket;
 
+    uint other_ip;
+    int other_port;
+    
     int server_rec_port;
     int udp_rec_port;
 
@@ -39,6 +41,7 @@ private:
     void rec_threadRun();
 
     bool stop;
+    timespec end_time;
 
     /*
      * Paketgröße = Paket Header (36 Bytes) + Dummy Daten
@@ -47,7 +50,7 @@ private:
 
     timespec timespec_diff_timespec(timespec *start, timespec *end);
     double timespec_diff_double(timespec *start, timespec *end);
-    
+
     char zeit_dateiname[256];
 };
 

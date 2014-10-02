@@ -141,6 +141,12 @@ ClientClass::ClientClass() {
         fflush(stdout);
         exit(EXIT_FAILURE);
 
+    } else if (false == info_s2c.client_ip_ok) {
+
+        printf("ERROR:\n  Server Error: client_ip_ok\n");
+        fflush(stdout);
+        exit(EXIT_FAILURE);
+
     } else if (0 == info_s2c.port) {
 
         printf("ERROR:\n  Server Error: Kein udp_recv_port\n");
