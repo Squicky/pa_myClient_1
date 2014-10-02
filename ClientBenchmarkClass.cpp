@@ -17,7 +17,7 @@
 #include <unistd.h>
 
 #define BinClient true
-#define LOG_TYPE 2
+#define LOG_TYPE 1
 
 ClientBenchmarkClass::ClientBenchmarkClass(char * _server_ip, int _server_rec_port, int _mess_paket_size, char _zeit_dateiname[]) {
 
@@ -234,8 +234,10 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_recv->rtt = -2;
     arbeits_paket_header_send->recv_data_rate = START_RECV_DATA_RATE / 8;
     arbeits_paket_header_recv->recv_data_rate = START_RECV_DATA_RATE / 8;
+    arbeits_paket_header_send->mess_paket_size = mess_paket_size;
+    arbeits_paket_header_recv->mess_paket_size = mess_paket_size;
 
-    bool bremsen_datarate = false;
+    bool bremsen_datarate = true;
     bool bremsen_send = true;
 
     timespec *first_paket_train_send_time;
@@ -278,7 +280,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     printf("START Messung: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     printf("<----> Server (%s:%d)", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));
-
+    
     printf("sende %d Pakete # train_id: %d # retransfer_train_id: %d\n", arbeits_paket_header_send->count_pakets_in_train, arbeits_paket_header_send->train_id, arbeits_paket_header_send->retransfer_train_id);
     for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
         arbeits_paket_header_send->paket_id = i;
@@ -643,6 +645,8 @@ void ClientBenchmarkClass::rec_threadRun() {
                 }
             }
 
+            arbeits_paket_header_send->mess_paket_size = mess_paket_size;
+            
             for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
 
                 arbeits_paket_header_send->paket_id = i;
