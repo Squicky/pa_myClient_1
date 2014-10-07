@@ -79,7 +79,7 @@ ListArrayClass::ListArrayClass(int _mess_paket_size, char *_filename) {
     }
     printf("Datei \"%s\" erstellt & geoeffnet \n", filename);
 
-    char firstlines[] = "train_id;retransfer_train_id;paket_id;count_pakets_in_train;recv_data_rate;last_recv_train_id;last_recv_retransfer_train_id;last_recv_paket_id;last_recv_paket_bytes;timeout_time_tv_sec;timeout_time_tv_usec;recv_time;send_time;rtt\n\n\n";
+    char firstlines[] = "train_id;retransfer_train_id;paket_id;count_pakets_in_train;recv_data_rate;first_recv_train_id;first_recv_retransfer_train_id;first_recv_paket_id;first_recv_recv_time;last_recv_paket_bytes;timeout_time_tv_sec;timeout_time_tv_usec;recv_time;send_time;rtt\n\n\n";
     int firstlines_len = strlen(firstlines);
 
     /*
@@ -211,9 +211,9 @@ void ListArrayClass::save_to_file_and_clear() {
                             lac->array_paket_header[i].paket_id,
                             lac->array_paket_header[i].retransfer_train_id,
                             lac->array_paket_header[i].recv_data_rate,
-                            lac->array_paket_header[i].last_recv_train_id,
-                            lac->array_paket_header[i].last_recv_retransfer_train_id,
-                            lac->array_paket_header[i].last_recv_paket_id,
+                            lac->array_paket_header[i].first_recv_train_id,
+                            lac->array_paket_header[i].first_recv_retransfer_train_id,
+                            lac->array_paket_header[i].first_recv_paket_id,
                             lac->array_paket_header[i].last_recv_paket_bytes,
                             lac->array_paket_header[i].timeout_time_tv_sec,
                             lac->array_paket_header[i].timeout_time_tv_usec,
