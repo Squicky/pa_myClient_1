@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/ATCInfo.o \
 	${OBJECTDIR}/ClientBenchmarkClass.o \
 	${OBJECTDIR}/ClientClass.o \
 	${OBJECTDIR}/ListArrayClass.o \
@@ -64,6 +65,11 @@ LDLIBSOPTIONS=
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/pa_myclient_1 ${OBJECTFILES} ${LDLIBSOPTIONS} -lrt
+
+${OBJECTDIR}/ATCInfo.o: ATCInfo.cpp 
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/ATCInfo.o ATCInfo.cpp
 
 ${OBJECTDIR}/ClientBenchmarkClass.o: ClientBenchmarkClass.cpp 
 	${MKDIR} -p ${OBJECTDIR}

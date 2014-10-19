@@ -57,7 +57,8 @@ sudo iptraf
 
 #define CLIENT_IP "" 
 //#define SERVER_IP "134.99.147.228" // IP von strongrom.norgoe.de
-#define SERVER_IP "134.99.4.82" // IP von nb im zim
+//#define SERVER_IP "134.99.4.82" // IP von nb im zim
+#define SERVER_IP "192.168.0.1" // nb
 //#define SERVER_IP "127.0.0.1"
 
 //#define CLIENT_IP "192.168.220.235"

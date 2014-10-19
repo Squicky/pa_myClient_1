@@ -4,9 +4,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>ATCInfo.h</itemPath>
       <itemPath>ClientBenchmarkClass.h</itemPath>
       <itemPath>ClientClass.h</itemPath>
       <itemPath>ListArrayClass.h</itemPath>
+      <itemPath>SerialPortClass.h</itemPath>
       <itemPath>ServerClientInfo.h</itemPath>
       <itemPath>welcome.h</itemPath>
     </logicalFolder>
@@ -17,6 +19,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
+      <itemPath>ATCInfo.cpp</itemPath>
       <itemPath>ClientBenchmarkClass.cpp</itemPath>
       <itemPath>ClientClass.cpp</itemPath>
       <itemPath>ListArrayClass.cpp</itemPath>
@@ -44,6 +47,10 @@
           <commandLine>-lrt</commandLine>
         </linkerTool>
       </compileType>
+      <item path="ATCInfo.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ATCInfo.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="ClientBenchmarkClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ClientBenchmarkClass.h" ex="false" tool="3" flavor2="0">
@@ -55,6 +62,8 @@
       <item path="ListArrayClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ListArrayClass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SerialPortClass.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ServerClientInfo.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -83,6 +92,10 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="ATCInfo.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="ATCInfo.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="ClientBenchmarkClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ClientBenchmarkClass.h" ex="false" tool="3" flavor2="0">
@@ -94,6 +107,8 @@
       <item path="ListArrayClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="ListArrayClass.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="SerialPortClass.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ServerClientInfo.h" ex="false" tool="3" flavor2="0">
       </item>

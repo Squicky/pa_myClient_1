@@ -25,6 +25,10 @@ public:
      */
 
     pthread_t rec_thread;
+
+    static timespec timespec_diff_timespec(timespec *start, timespec *end);
+    static double timespec_diff_double(timespec *start, timespec *end);
+
 private:
     struct sockaddr_in otherAddr;
     struct sockaddr_in meineAddr;
@@ -33,7 +37,7 @@ private:
 
     uint other_ip;
     int other_port;
-    
+
     int server_rec_port;
     int udp_rec_port;
 
@@ -48,8 +52,6 @@ private:
      */
     int mess_paket_size;
 
-    timespec timespec_diff_timespec(timespec *start, timespec *end);
-    double timespec_diff_double(timespec *start, timespec *end);
 
     char zeit_dateiname[256];
 };
