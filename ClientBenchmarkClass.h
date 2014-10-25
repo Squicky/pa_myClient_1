@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include "ClientBenchmarkClass.h"
+#include "ATCInfo.h"
 
 #define LOCAL_Mess_PORT 8000
 
@@ -52,8 +53,9 @@ private:
      */
     int mess_paket_size;
 
-
     char zeit_dateiname[256];
+    
+    ATCInfo *atcInfo;
 };
 
 #endif	/* CLIENTBENCHMARKCLASS_H */

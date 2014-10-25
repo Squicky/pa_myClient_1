@@ -15,6 +15,7 @@ int main(int argc, char**argv) {
     // Prints welcome message...
     std::cout << "Welcome ..." << std::endl;
 
+    /*
     ATCInfo *a = new ATCInfo();
 
     int buffer_len = 1024;
@@ -37,8 +38,8 @@ int main(int argc, char**argv) {
     
     double d = ClientBenchmarkClass::timespec_diff_double(&t1, &t2);
 
-
     return EXIT_SUCCESS;
+    */
 
     // Prints arguments...
     /*
