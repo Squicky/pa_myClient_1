@@ -275,16 +275,29 @@ void ClientBenchmarkClass::rec_threadRun() {
 
 #ifdef BinClient
 
+    int addrlen;
+    long save_fd_NONBLOCK;
+    long save_fd_BLOCK;
+    bool is_save_fd_BLOCK;
+    addrlen = sizeof (struct sockaddr_in);
+    save_fd_BLOCK = fcntl(other_mess_socket, F_GETFL);
+    save_fd_NONBLOCK = save_fd_BLOCK;
+    save_fd_NONBLOCK |= O_NONBLOCK;
+
+    is_save_fd_BLOCK = false;
+    arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+    arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
+    fcntl(other_mess_socket, F_SETFL, save_fd_NONBLOCK);
+
     atcInfo = new ATCInfo(&(zeit_dateiname[0]));
     atcInfo->step_index = 0;
     atcInfo->train_id = arbeits_paket_header_send->train_id;
     atcInfo->retransfer_train_id = arbeits_paket_header_send->retransfer_train_id;
 
-    uint xx = 0;
     while (atcInfo->step_index <= atcInfo->last_step_index) {
         atcInfo->do_step();
-        xx++;
     }
+    atcInfo->save_to_file();
 
     arbeits_paket_header_send->count_pakets_in_train = arbeits_paket_header_send->recv_data_rate / mess_paket_size_doppelt; // es soll nur 500 ms gesendet werden
     if (arbeits_paket_header_send->count_pakets_in_train < 5) {
@@ -353,29 +366,6 @@ void ClientBenchmarkClass::rec_threadRun() {
         }
     }
 
-    /*
-    printf("1 #\n%s\n# \n", atcInfo->AT_Set_new->arNetwork_technology_currently_in_use);
-    printf("2 #\n%s\n# \n", atcInfo->AT_Set_new->arAvailable_technologies_on_current_network);
-    printf("3 #\n%s\n# \n", atcInfo->AT_Set_new->arOperational_status);
-    printf("4 #\n%s\n# \n", atcInfo->AT_Set_new->arCurrent_active_radio_access_technology);
-    printf("5 #\n%s\n# \n", atcInfo->AT_Set_new->arCurrent_service_domain);
-    printf("6 #\n%s\n# \n", atcInfo->AT_Set_new->arSignal_Quality);
-    printf("7 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Active_Set);
-    printf("8 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Sync_Neighbour);
-    printf("9 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Async_Neighbour);
-     */
-
-    int addrlen;
-    long save_fd_NONBLOCK;
-    long save_fd_BLOCK;
-    bool is_save_fd_BLOCK;
-    addrlen = sizeof (struct sockaddr_in);
-    save_fd_BLOCK = fcntl(other_mess_socket, F_GETFL);
-    save_fd_NONBLOCK = save_fd_BLOCK;
-    save_fd_NONBLOCK |= O_NONBLOCK;
-
-    is_save_fd_BLOCK = false;
-    fcntl(other_mess_socket, F_SETFL, save_fd_NONBLOCK);
 
 #endif  
 
@@ -397,6 +387,8 @@ void ClientBenchmarkClass::rec_threadRun() {
             // Socket blockieren
             if (is_save_fd_BLOCK == false) {
                 is_save_fd_BLOCK = true;
+                arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+                arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
                 fcntl(other_mess_socket, F_SETFL, save_fd_BLOCK);
 
                 // Recv Timeout von 1 Sek berechnen
@@ -422,16 +414,22 @@ void ClientBenchmarkClass::rec_threadRun() {
 
                         }
                     }
-
-                    arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
-                    arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
-
-                    if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
-                        printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
-                        fflush(stdout);
-                        exit(EXIT_FAILURE);
-                    }
+                } else {
+                    timeout_time.tv_sec = 0;
+                    timeout_time.tv_usec = 500000;
                 }
+
+                arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
+                arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
+                arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
+                arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
+
+                if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+                    printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
+                }
+
 
                 if (log_type == 1) {
                     printf("\033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  ",
@@ -468,16 +466,21 @@ void ClientBenchmarkClass::rec_threadRun() {
 
 #endif
 
+#ifdef BinServer
         if (set_timeout == 0) {
             set_timeout = 1;
 
-#ifdef BinClient
-            printf("ERSTER Empfang: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
-            printf("<----> Server (%s:%d)", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));
-#endif
+            /*            
+            #ifdef BinClient
+                        printf("ERSTER Empfang: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
+                        printf("<----> Server (%s:%d)", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));
+            #endif
+             */
 
             arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
             arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
+            arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
+            arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
 
             if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
                 printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
@@ -485,6 +488,7 @@ void ClientBenchmarkClass::rec_threadRun() {
                 exit(EXIT_FAILURE);
             }
         }
+#endif
 
         if (recvedBytes == -1) {
             count_recv_Timeout++;
@@ -532,6 +536,9 @@ void ClientBenchmarkClass::rec_threadRun() {
             arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
             arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
 
+#ifdef BinClient            
+            arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+#endif
             if (arbeits_paket_header_recv->train_id < my_max_send_train_id) {
                 lac_recv->copy_paket_header(arbeits_paket_header_recv);
                 continue;
@@ -636,20 +643,6 @@ void ClientBenchmarkClass::rec_threadRun() {
             while (atcInfo->step_index <= atcInfo->last_step_index) {
                 atcInfo->do_step();
             }
-
-            /*
-            printf("1 #\n%s\n# \n", atcInfo->AT_Set_new->arNetwork_technology_currently_in_use);
-            printf("2 #\n%s\n# \n", atcInfo->AT_Set_new->arAvailable_technologies_on_current_network);
-            printf("3 #\n%s\n# \n", atcInfo->AT_Set_new->arOperational_status);
-            printf("4 #\n%s\n# \n", atcInfo->AT_Set_new->arCurrent_active_radio_access_technology);
-            printf("5 #\n%s\n# \n", atcInfo->AT_Set_new->arCurrent_service_domain);
-            printf("6 #\n%s\n# \n", atcInfo->AT_Set_new->arSignal_Quality);
-            printf("7 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Active_Set);
-            printf("8 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Sync_Neighbour);
-            printf("9 #\n%s\n# \n", atcInfo->AT_Set_new->arWCDMA_Async_Neighbour);
-             */
-
-            atcInfo->step_index = 0;
 #endif
 
             arbeits_paket_header_send->last_recv_paket_bytes = recvedBytes;
@@ -773,21 +766,19 @@ void ClientBenchmarkClass::rec_threadRun() {
             }
 
             // rtt in ersten recv Packet eintraken
-            {
-                struct paket_header *x = NULL;
-                if (0 < lac_recv->count_paket_headers) {
-                    x = lac_send2->give_paket_header(lac_recv->first_paket_header->first_recv_train_id, lac_recv->first_paket_header->first_recv_retransfer_train_id, lac_recv->first_paket_header->first_recv_paket_id);
-                    if (x == NULL) {
-                        x = lac_send1->give_paket_header(lac_recv->first_paket_header->first_recv_train_id, lac_recv->first_paket_header->first_recv_retransfer_train_id, lac_recv->first_paket_header->first_recv_paket_id);
-                    }
+            struct paket_header *x = NULL;
+            if (0 < lac_recv->count_paket_headers) {
+                x = lac_send2->give_paket_header(lac_recv->first_paket_header->first_recv_train_id, lac_recv->first_paket_header->first_recv_retransfer_train_id, lac_recv->first_paket_header->first_recv_paket_id);
+                if (x == NULL) {
+                    x = lac_send1->give_paket_header(lac_recv->first_paket_header->first_recv_train_id, lac_recv->first_paket_header->first_recv_retransfer_train_id, lac_recv->first_paket_header->first_recv_paket_id);
                 }
+            }
 
-                if (x != NULL) {
-                    arbeits_paket_header_send->rtt = timespec_diff_double(&x->send_time, &lac_recv->first_paket_header->recv_time);
-                    arbeits_paket_header_send->rtt = arbeits_paket_header_send->rtt - timespec_diff_double(&lac_recv->first_paket_header->first_recv_recv_time, &lac_recv->first_paket_header->send_time);
-                } else {
-                    arbeits_paket_header_send->rtt = -1;
-                }
+            if (x != NULL) {
+                arbeits_paket_header_send->rtt = timespec_diff_double(&x->send_time, &lac_recv->first_paket_header->recv_time);
+                arbeits_paket_header_send->rtt = arbeits_paket_header_send->rtt - timespec_diff_double(&lac_recv->first_paket_header->first_recv_recv_time, &lac_recv->first_paket_header->send_time);
+            } else {
+                arbeits_paket_header_send->rtt = -1;
             }
 
             arbeits_paket_header_send->mess_paket_size = mess_paket_size;
@@ -871,22 +862,28 @@ void ClientBenchmarkClass::rec_threadRun() {
                         timeout_time.tv_sec = timeout_time.tv_usec / 1000000;
                         timeout_time.tv_usec = timeout_time.tv_usec % 1000000;
 
-                        if (7 < timeout_time.tv_sec) {
-                            timeout_time.tv_sec = 7;
+                        if (5 < timeout_time.tv_sec) {
+                            timeout_time.tv_sec = 5;
                         }
 
                     }
                 }
-
-                arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
-                arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
-
-                if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
-                    printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
-                    fflush(stdout);
-                    exit(EXIT_FAILURE);
-                }
+            } else {
+                timeout_time.tv_sec = 0;
+                timeout_time.tv_usec = 500000;
             }
+
+            arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
+            arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
+            arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
+            arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
+
+            if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+                printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
+                fflush(stdout);
+                exit(EXIT_FAILURE);
+            }
+
 
             if (log_type == 1) {
                 printf("\033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  ",
@@ -997,6 +994,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
             // Socket nicht blockieren
             is_save_fd_BLOCK = false;
+            arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+            arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
             fcntl(other_mess_socket, F_SETFL, save_fd_NONBLOCK);
 #endif
         }

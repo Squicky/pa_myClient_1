@@ -299,7 +299,7 @@ int ATCInfo::myReadOne(char buffer [], int len, int *readed, struct timespec *ti
             char timestr1[timestr_size];
             timespec2str(timestr1, timestr_size, time);
             printf("r: %s\n", timestr1);
-            */
+             */
         }
     } else {
         if (100000 < count_myReadOne) {
@@ -632,13 +632,18 @@ int ATCInfo::do_step() {
 }
 
 int ATCInfo::save_to_file() {
+    
+    this->step_index = 0;
 
     int timespec_len = sizeof (timespec);
     int aw_len_1 = 0;
     int ar_len_1 = 0;
 
+    bool save_all = true;
+
     if (AT_Set_old->readedNetwork_technology_currently_in_use != AT_Set_new->readedNetwork_technology_currently_in_use ||
-            0 != strcmp(AT_Set_old->arNetwork_technology_currently_in_use, AT_Set_new->arNetwork_technology_currently_in_use)) {
+            0 != strcmp(AT_Set_old->arNetwork_technology_currently_in_use, AT_Set_new->arNetwork_technology_currently_in_use) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeNetwork_technology_currently_in_use, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -663,7 +668,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedAvailable_technologies_on_current_network != AT_Set_new->readedAvailable_technologies_on_current_network ||
-            0 != strcmp(AT_Set_old->arAvailable_technologies_on_current_network, AT_Set_new->arAvailable_technologies_on_current_network)) {
+            0 != strcmp(AT_Set_old->arAvailable_technologies_on_current_network, AT_Set_new->arAvailable_technologies_on_current_network)
+            || save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeAvailable_technologies_on_current_network, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -688,7 +694,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedOperational_status != AT_Set_new->readedOperational_status ||
-            0 != strcmp(AT_Set_old->arOperational_status, AT_Set_new->arOperational_status)) {
+            0 != strcmp(AT_Set_old->arOperational_status, AT_Set_new->arOperational_status) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeOperational_status, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -713,7 +720,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedCurrent_active_radio_access_technology != AT_Set_new->readedCurrent_active_radio_access_technology ||
-            0 != strcmp(AT_Set_old->arCurrent_active_radio_access_technology, AT_Set_new->arCurrent_active_radio_access_technology)) {
+            0 != strcmp(AT_Set_old->arCurrent_active_radio_access_technology, AT_Set_new->arCurrent_active_radio_access_technology) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeCurrent_active_radio_access_technology, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -738,7 +746,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedCurrent_service_domain != AT_Set_new->readedCurrent_service_domain ||
-            0 != strcmp(AT_Set_old->arCurrent_service_domain, AT_Set_new->arCurrent_service_domain)) {
+            0 != strcmp(AT_Set_old->arCurrent_service_domain, AT_Set_new->arCurrent_service_domain) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeCurrent_service_domain, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -763,7 +772,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedSignal_Quality != AT_Set_new->readedSignal_Quality ||
-            0 != strcmp(AT_Set_old->arSignal_Quality, AT_Set_new->arSignal_Quality)) {
+            0 != strcmp(AT_Set_old->arSignal_Quality, AT_Set_new->arSignal_Quality) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeSignal_Quality, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -788,7 +798,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedWCDMA_Active_Set != AT_Set_new->readedWCDMA_Active_Set ||
-            0 != strcmp(AT_Set_old->arWCDMA_Active_Set, AT_Set_new->arWCDMA_Active_Set)) {
+            0 != strcmp(AT_Set_old->arWCDMA_Active_Set, AT_Set_new->arWCDMA_Active_Set) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeWCDMA_Active_Set, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -813,7 +824,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedWCDMA_Sync_Neighbour != AT_Set_new->readedWCDMA_Sync_Neighbour ||
-            0 != strcmp(AT_Set_old->arWCDMA_Sync_Neighbour, AT_Set_new->arWCDMA_Sync_Neighbour)) {
+            0 != strcmp(AT_Set_old->arWCDMA_Sync_Neighbour, AT_Set_new->arWCDMA_Sync_Neighbour) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeWCDMA_Sync_Neighbour, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
@@ -838,7 +850,8 @@ int ATCInfo::save_to_file() {
     }
 
     if (AT_Set_old->readedWCDMA_Async_Neighbour != AT_Set_new->readedWCDMA_Async_Neighbour ||
-            0 != strcmp(AT_Set_old->arWCDMA_Async_Neighbour, AT_Set_new->arWCDMA_Async_Neighbour)) {
+            0 != strcmp(AT_Set_old->arWCDMA_Async_Neighbour, AT_Set_new->arWCDMA_Async_Neighbour) ||
+            save_all) {
 
         if (write(File_Deskriptor_file, &AT_Set_new->timeWCDMA_Async_Neighbour, timespec_len) != timespec_len) {
             printf("ERROR:\n  Fehler beim Schreiben der Datei \"%s\" \n(%s)\n", filename_file, strerror(errno));
