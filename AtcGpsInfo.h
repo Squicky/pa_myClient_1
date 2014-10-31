@@ -8,6 +8,7 @@
 #include <vector>
 #include <string.h>
 #include <time.h>
+#include <netinet/in.h>
 
 #ifndef ATCINFO_H
 #define	ATCINFO_H
@@ -42,35 +43,21 @@
 #define awWCDMA_Async_Neighbour_len 11
 
 struct AT_Set {
-    char arNetwork_technology_currently_in_use[BufferSize];
-    char arAvailable_technologies_on_current_network[BufferSize];
-    char arOperational_status[BufferSize];
-    char arCurrent_active_radio_access_technology[BufferSize];
-    char arCurrent_service_domain[BufferSize];
-    char arSignal_Quality[BufferSize];
-    char arWCDMA_Active_Set[BufferSize];
-    char arWCDMA_Sync_Neighbour[BufferSize];
-    char arWCDMA_Async_Neighbour[BufferSize];
+    char ar[BufferSize];
+    int readed;
+    struct timespec time;
+};
 
-    int readedNetwork_technology_currently_in_use;
-    int readedAvailable_technologies_on_current_network;
-    int readedOperational_status;
-    int readedCurrent_active_radio_access_technology;
-    int readedCurrent_service_domain;
-    int readedSignal_Quality;
-    int readedWCDMA_Active_Set;
-    int readedWCDMA_Sync_Neighbour;
-    int readedWCDMA_Async_Neighbour;
-
-    struct timespec timeNetwork_technology_currently_in_use;
-    struct timespec timeAvailable_technologies_on_current_network;
-    struct timespec timeOperational_status;
-    struct timespec timeCurrent_active_radio_access_technology;
-    struct timespec timeCurrent_service_domain;
-    struct timespec timeSignal_Quality;
-    struct timespec timeWCDMA_Active_Set;
-    struct timespec timeWCDMA_Sync_Neighbour;
-    struct timespec timeWCDMA_Async_Neighbour;
+struct AT_Sets {
+    AT_Set Network_technology_currently_in_use;
+    AT_Set Available_technologies_on_current_network;
+    AT_Set Operational_status;
+    AT_Set Current_active_radio_access_technology;
+    AT_Set Current_service_domain;
+    AT_Set Signal_Quality;
+    AT_Set WCDMA_Active_Set;
+    AT_Set WCDMA_Sync_Neighbour;
+    AT_Set WCDMA_Async_Neighbour;
 };
 
 class MultiDataSetClass;
@@ -80,11 +67,11 @@ struct EndsignalData {
     int size;
 };
 
-class ATCInfo {
+class AtcGpsInfo {
 public:
-    ATCInfo(char *_zeit_dateiname);
+    AtcGpsInfo(char *_zeit_dateiname);
     //    ATCInfo(const ATCInfo& orig);
-    virtual ~ATCInfo();
+    virtual ~AtcGpsInfo();
 
     int get_Network_technology_currently_in_use(char s[], int len);
     int get_Available_technologies_on_current_network(char s[], int len);
@@ -103,9 +90,11 @@ public:
     int retransfer_train_id;
     int step_index;
     int last_step_index;
+
+    struct AT_Sets *AT_Sets_new;
+    struct AT_Sets *AT_Sets_old;
     
-    struct AT_Set *AT_Set_new;
-    struct AT_Set *AT_Set_old;
+    bool all_steps_done;
 private:
     int File_Deskriptor_tty; // filedescriptor
     char *filename_tty;
@@ -120,12 +109,19 @@ private:
     int myWrite(const char s [], int len);
     int myRead(char buffer [], int len);
     int timespec2str(char *buf, int len, struct timespec *ts);
-    int myReadOne(char buffer [], int len, int *readed, struct timespec *time);
+    int myReadOne(AT_Set *ats, int len);
 
     int count_myReadOne;
-    
+
     int File_Deskriptor_file;
-    char filename_file[1024];    
+    char filename_file[1024];
+
+    struct sockaddr_in address_gpsd;   
+    int socket_gpsd;
+    char buffer_pgsd[BufferSize];
+    
+    bool steps_after_save;
+    int step_index_by_last_save;
 };
 
 #endif	/* ATCINFO_H */

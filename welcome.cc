@@ -9,7 +9,7 @@
 
 #include "ClientClass.h"
 #include "ServerClientInfo.h"
-#include "ATCInfo.h"
+#include "AtcGpsInfo.h"
 
 int main(int argc, char**argv) {
     // Prints welcome message...

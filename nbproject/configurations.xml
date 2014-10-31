@@ -4,7 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>ATCInfo.h</itemPath>
+      <itemPath>AtcGpsInfo.h</itemPath>
       <itemPath>ClientBenchmarkClass.h</itemPath>
       <itemPath>ClientClass.h</itemPath>
       <itemPath>ListArrayClass.h</itemPath>
@@ -19,7 +19,7 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>ATCInfo.cpp</itemPath>
+      <itemPath>AtcGpsInfo.cpp</itemPath>
       <itemPath>ClientBenchmarkClass.cpp</itemPath>
       <itemPath>ClientClass.cpp</itemPath>
       <itemPath>ListArrayClass.cpp</itemPath>
@@ -47,9 +47,9 @@
           <commandLine>-lrt</commandLine>
         </linkerTool>
       </compileType>
-      <item path="ATCInfo.cpp" ex="false" tool="1" flavor2="0">
+      <item path="AtcGpsInfo.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ATCInfo.h" ex="false" tool="3" flavor2="0">
+      <item path="AtcGpsInfo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ClientBenchmarkClass.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -92,9 +92,9 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="ATCInfo.cpp" ex="false" tool="1" flavor2="0">
+      <item path="AtcGpsInfo.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="ATCInfo.h" ex="false" tool="3" flavor2="0">
+      <item path="AtcGpsInfo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ClientBenchmarkClass.cpp" ex="false" tool="1" flavor2="0">
       </item>

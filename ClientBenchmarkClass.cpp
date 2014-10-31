@@ -289,7 +289,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
     fcntl(other_mess_socket, F_SETFL, save_fd_NONBLOCK);
 
-    atcInfo = new ATCInfo(&(zeit_dateiname[0]));
+    atcInfo = new AtcGpsInfo(&(zeit_dateiname[0]));
     atcInfo->step_index = 0;
     atcInfo->train_id = arbeits_paket_header_send->train_id;
     atcInfo->retransfer_train_id = arbeits_paket_header_send->retransfer_train_id;
@@ -378,7 +378,7 @@ void ClientBenchmarkClass::rec_threadRun() {
         clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
 
 #ifdef BinClient
-        if (atcInfo->step_index <= atcInfo->last_step_index) {
+        if (atcInfo->all_steps_done == false) {
             atcInfo->do_step();
             if (recvedBytes == -1) {
                 continue;
@@ -640,9 +640,9 @@ void ClientBenchmarkClass::rec_threadRun() {
                 ) {
 
 #ifdef BinClient
-            while (atcInfo->step_index <= atcInfo->last_step_index) {
-                atcInfo->do_step();
-            }
+//            while (atcInfo->step_index <= atcInfo->last_step_index) {
+//                atcInfo->do_step();
+//            }
 #endif
 
             arbeits_paket_header_send->last_recv_paket_bytes = recvedBytes;
@@ -991,6 +991,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
 #ifdef BinClient
             this->atcInfo->save_to_file();
+            
 
             // Socket nicht blockieren
             is_save_fd_BLOCK = false;
