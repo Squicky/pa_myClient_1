@@ -9,11 +9,12 @@
 #include <string.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <list>
 
 #ifndef ATCINFO_H
 #define	ATCINFO_H
 
-#define BufferSize 10240
+#define BufferSize 102400
 
 #define DeviceValueType_string 0
 #define DeviceValueType_float 1
@@ -42,30 +43,12 @@
 #define awWCDMA_Async_Neighbour "AT+USET?2\r\n"
 #define awWCDMA_Async_Neighbour_len 11
 
-struct AT_Set {
-    char ar[BufferSize];
-    int readed;
-    struct timespec time;
-};
+struct AT_Set;
 
-struct AT_Sets {
-    AT_Set Network_technology_currently_in_use;
-    AT_Set Available_technologies_on_current_network;
-    AT_Set Operational_status;
-    AT_Set Current_active_radio_access_technology;
-    AT_Set Current_service_domain;
-    AT_Set Signal_Quality;
-    AT_Set WCDMA_Active_Set;
-    AT_Set WCDMA_Sync_Neighbour;
-    AT_Set WCDMA_Async_Neighbour;
-};
+struct AT_Sets;
 
-class MultiDataSetClass;
+struct EndsignalData;
 
-struct EndsignalData {
-    char *cp;
-    int size;
-};
 
 class AtcGpsInfo {
 public:
@@ -86,15 +69,17 @@ public:
     int save_to_file();
 
     int do_step();
+    int myReadOne(AT_Set *ats, int len);
+
     int train_id;
     int retransfer_train_id;
     int step_index;
     int last_step_index;
 
-    struct AT_Sets *AT_Sets_new;
-    struct AT_Sets *AT_Sets_old;
+    struct AT_Sets *AT_Sets_v;
     
     bool all_steps_done;
+    bool steps_after_save;
 private:
     int File_Deskriptor_tty; // filedescriptor
     char *filename_tty;
@@ -109,19 +94,58 @@ private:
     int myWrite(const char s [], int len);
     int myRead(char buffer [], int len);
     int timespec2str(char *buf, int len, struct timespec *ts);
-    int myReadOne(AT_Set *ats, int len);
+    
+    int read_buffer_gpsd();
 
-    int count_myReadOne;
-
-    int File_Deskriptor_file;
-    char filename_file[1024];
+    int File_Deskriptor_atc;
+    char filename_atc[1024];
 
     struct sockaddr_in address_gpsd;   
     int socket_gpsd;
     char buffer_pgsd[BufferSize];
+    int buffer_pgsd_readed;
+    int File_Deskriptor_gps;
+    char filename_gps[1024];
     
-    bool steps_after_save;
     int step_index_by_last_save;
+    
+    std::list<AT_Set *> AT_set_List;
+};
+
+struct AT_Set {
+    char *ar_saved;
+    int readed_saved;
+
+    char *ar_write;
+    int readed_write;
+    
+    char *aw;
+    int aw_len;
+    
+    struct timespec time_write;
+    struct timespec time_read_start;
+    struct timespec time_read_ende;
+
+    bool new_readed;
+    
+    int count_read;
+};
+
+struct AT_Sets {
+    AT_Set Network_technology_currently_in_use;
+    AT_Set Available_technologies_on_current_network;
+    AT_Set Operational_status;
+    AT_Set Current_active_radio_access_technology;
+    AT_Set Current_service_domain;
+    AT_Set Signal_Quality;
+    AT_Set WCDMA_Active_Set;
+    AT_Set WCDMA_Sync_Neighbour;
+    AT_Set WCDMA_Async_Neighbour;
+};
+
+struct EndsignalData {
+    char *cp;
+    int size;
 };
 
 #endif	/* ATCINFO_H */

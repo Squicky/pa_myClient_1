@@ -157,7 +157,7 @@ void ClientBenchmarkClass::rec_threadRun() {
 
     // Berechne Speichergroeße fuer Array fuer Header eines ganzen Trains
     // bei max. UMTS Geschwindigkeit
-    // Da wir nur 500 ms lange senden wollen sollte das Array groß genug sein (fast doppelte Groe�e))
+    // Da wir nur 500 ms lange senden wollen sollte das Array groß genug sein (fast doppelte Groesse))
     //    uint count_array_paket_header = MAX_UMTS_DATA_RATE / mess_paket_size;
     //    uint last_index_in_array_paket_header = count_array_paket_header - 1;
     //    uint paket_header_size = sizeof (paket_header);
@@ -238,7 +238,7 @@ void ClientBenchmarkClass::rec_threadRun() {
     arbeits_paket_header_send->mess_paket_size = mess_paket_size;
     arbeits_paket_header_recv->mess_paket_size = mess_paket_size;
 
-    bool bremsen_datarate = true;
+    bool bremsen_datarate = false;
     bool bremsen_send = false;
 
     timespec *first_paket_train_send_time;
@@ -294,7 +294,8 @@ void ClientBenchmarkClass::rec_threadRun() {
     atcInfo->train_id = arbeits_paket_header_send->train_id;
     atcInfo->retransfer_train_id = arbeits_paket_header_send->retransfer_train_id;
 
-    while (atcInfo->step_index <= atcInfo->last_step_index) {
+
+    while (atcInfo->all_steps_done == false) {
         atcInfo->do_step();
     }
     atcInfo->save_to_file();
@@ -303,6 +304,13 @@ void ClientBenchmarkClass::rec_threadRun() {
     if (arbeits_paket_header_send->count_pakets_in_train < 5) {
         arbeits_paket_header_send->count_pakets_in_train = 5;
     }
+
+    send_sleep_total = 0;
+
+    is_save_fd_BLOCK = true;
+    arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+    arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
+    fcntl(other_mess_socket, F_SETFL, save_fd_BLOCK);
 
     printf("START Messung: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     printf("<----> Server (%s:%d)", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));
@@ -316,6 +324,8 @@ void ClientBenchmarkClass::rec_threadRun() {
 
         if (recvedBytes != mess_paket_size - HEADER_SIZES) {
             printf("ERROR:\n  %ld Bytes gesendet (%s)\n", recvedBytes, strerror(errno));
+            fflush(stdout);
+            exit(EXIT_FAILURE);
         } else {
             lac_send3->copy_paket_header(arbeits_paket_header_send);
         }
@@ -378,12 +388,19 @@ void ClientBenchmarkClass::rec_threadRun() {
         clock_gettime(CLOCK_REALTIME, &(arbeits_paket_header_recv->recv_time));
 
 #ifdef BinClient
+
+
         if (atcInfo->all_steps_done == false) {
             atcInfo->do_step();
+
             if (recvedBytes == -1) {
                 continue;
             }
         } else {
+
+
+            bool set_timeout = false;
+
             // Socket blockieren
             if (is_save_fd_BLOCK == false) {
                 is_save_fd_BLOCK = true;
@@ -419,6 +436,28 @@ void ClientBenchmarkClass::rec_threadRun() {
                     timeout_time.tv_usec = 500000;
                 }
 
+                set_timeout = true;
+
+            }
+
+            if (0 < recvedBytes) {
+                if (arbeits_paket_header_recv->paket_id > (arbeits_paket_header_recv->count_pakets_in_train / 2)) {
+                    if (timeout_time.tv_sec > 0 || timeout_time.tv_usec > 250000) {
+                        timeout_time.tv_sec = 0;
+                        timeout_time.tv_usec = 250000;
+                        set_timeout = true;
+                    }
+                } else {
+                    if (timeout_time.tv_sec > 0 || timeout_time.tv_usec > 500000) {
+                        timeout_time.tv_sec = 0;
+                        timeout_time.tv_usec = 500000;
+                        set_timeout = true;
+                    }
+                }
+            }
+
+            if (set_timeout) {
+                
                 arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
                 arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
                 arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
@@ -467,25 +506,66 @@ void ClientBenchmarkClass::rec_threadRun() {
 #endif
 
 #ifdef BinServer
-        if (set_timeout == 0) {
-            set_timeout = 1;
+        if (0 < recvedBytes || set_timeout == 0) {
 
-            /*            
-            #ifdef BinClient
-                        printf("ERSTER Empfang: Client (%s:%d)  ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
-                        printf("<----> Server (%s:%d)", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));
-            #endif
-             */
+            bool set_timeout = false;
 
-            arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
-            arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
-            arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
-            arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
+            if (set_timeout == 0) {
+                set_timeout = 1;
+                set_timeout = true;
+            } else {
+                if (arbeits_paket_header_recv->paket_id > (arbeits_paket_header_recv->count_pakets_in_train / 2)) {
+                    if (timeout_time.tv_sec > 0 || timeout_time.tv_usec > 250000) {
+                        timeout_time.tv_sec = 0;
+                        timeout_time.tv_usec = 250000;
+                        set_timeout = true;
+                    }
+                } else {
+                    if (timeout_time.tv_sec > 0 || timeout_time.tv_usec > 500000) {
+                        timeout_time.tv_sec = 0;
+                        timeout_time.tv_usec = 500000;
+                        set_timeout = true;
+                    }
+                }
+            }
 
-            if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
-                printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
-                fflush(stdout);
-                exit(EXIT_FAILURE);
+            if (set_timeout) {
+                arbeits_paket_header_send->timeout_time_tv_sec = timeout_time.tv_sec;
+                arbeits_paket_header_send->timeout_time_tv_usec = timeout_time.tv_usec;
+                arbeits_paket_header_recv->timeout_time_tv_sec = timeout_time.tv_sec;
+                arbeits_paket_header_recv->timeout_time_tv_usec = timeout_time.tv_usec;
+
+                if (setsockopt(other_mess_socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout_time, sizeof (timeout_time))) {
+                    printf("ERROR:\n  Kann Timeout fuer UDP Mess-Socket (UMS) nicht setzen: \n(%s)\n", strerror(errno));
+                    fflush(stdout);
+                    exit(EXIT_FAILURE);
+                }
+
+                if (log_type == 1) {
+                    printf("\033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  \033[%d;0H  ",
+                            log_zeile, log_zeile + 1, log_zeile + 2, log_zeile + 3, log_zeile + 4, log_zeile + 5, log_zeile + 6, log_zeile + 7, log_zeile + 8);
+                    printf("\033[%d;0H# ", log_zeile + 5);
+                }
+                if (log_type == 1 || log_type == 2) {
+                    printf("gesendet %d Pakete # train_id: %d # send_count: %d # sendTime: %.5f # RecvTimeout. %ld,%.6ld # sleep: %ld | %ld          ",
+                            arbeits_paket_header_send->count_pakets_in_train,
+                            arbeits_paket_header_send->train_id,
+                            arbeits_paket_header_send->retransfer_train_id,
+                            (double) train_sending_time.tv_nsec / 1000000000.0,
+                            timeout_time.tv_sec,
+                            //                    (double) timeout_time.tv_usec / 1000000.0,
+                            timeout_time.tv_usec,
+                            send_sleep_count,
+                            send_sleep_total);
+
+                    if (log_type == 1) {
+                        printf("\033[%d;0H", log_zeile + 8);
+                        fflush(stdout);
+                    } else if (log_type == 2) {
+                        printf("\n");
+                        fflush(stdout);
+                    }
+                }
             }
         }
 #endif
@@ -640,9 +720,9 @@ void ClientBenchmarkClass::rec_threadRun() {
                 ) {
 
 #ifdef BinClient
-//            while (atcInfo->step_index <= atcInfo->last_step_index) {
-//                atcInfo->do_step();
-//            }
+            //            while (atcInfo->step_index <= atcInfo->last_step_index) {
+            //                atcInfo->do_step();
+            //            }
 #endif
 
             arbeits_paket_header_send->last_recv_paket_bytes = recvedBytes;
@@ -782,6 +862,15 @@ void ClientBenchmarkClass::rec_threadRun() {
             }
 
             arbeits_paket_header_send->mess_paket_size = mess_paket_size;
+
+            send_sleep_total = 0;
+
+#ifdef BinClient
+            is_save_fd_BLOCK = true;
+            arbeits_paket_header_recv->recv_blocked = is_save_fd_BLOCK;
+            arbeits_paket_header_send->recv_blocked = is_save_fd_BLOCK;
+            fcntl(other_mess_socket, F_SETFL, save_fd_BLOCK);
+#endif
 
             for (i = 0; i < arbeits_paket_header_send->count_pakets_in_train; i++) {
 
@@ -990,8 +1079,16 @@ void ClientBenchmarkClass::rec_threadRun() {
             lac_recv->save_to_file_and_clear();
 
 #ifdef BinClient
+//            struct timespec t1, t2;
+
+//            clock_gettime(CLOCK_REALTIME, &t1);
             this->atcInfo->save_to_file();
-            
+//            clock_gettime(CLOCK_REALTIME, &t2);
+
+//            double d = timespec_diff_double(&t1, &t2);
+//            d = d * (double) 1000;
+
+//            printf("save time: %f ms \n", d);
 
             // Socket nicht blockieren
             is_save_fd_BLOCK = false;
@@ -1016,8 +1113,6 @@ void ClientBenchmarkClass::rec_threadRun() {
 #ifdef BinClient
     delete (atcInfo);
 #endif
-
-    clock_gettime(CLOCK_REALTIME, &end_time);
 
     printf("Ende von %s:%d <--> ", inet_ntoa(meineAddr.sin_addr), ntohs(meineAddr.sin_port));
     printf("%s:%d \n", inet_ntoa(otherAddr.sin_addr), ntohs(otherAddr.sin_port));

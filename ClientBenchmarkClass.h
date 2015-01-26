@@ -46,7 +46,6 @@ private:
     void rec_threadRun();
 
     bool stop;
-    timespec end_time;
 
     /*
      * Paketgröße = Paket Header (36 Bytes) + Dummy Daten
